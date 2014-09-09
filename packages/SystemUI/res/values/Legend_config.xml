@@ -18,4 +18,7 @@
     <integer name="recents_animate_fab_enter_delay">275</integer>
     <integer name="recents_animate_fab_exit_duration">125</integer>
 
+    <!-- Whether to enable to show task manager or not -->
+    <bool name="config_showTaskManagerSwitcher">true</bool>
+
 </resources>

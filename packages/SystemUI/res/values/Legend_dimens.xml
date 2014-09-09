@@ -32,4 +32,7 @@
     <!-- Recents memory bar -->
     <dimen name="recents_membar_spacing">12dp</dimen>
 
+    <!-- The task item height in task list. -->
+    <dimen name="task_manager_item_height">40dip</dimen>
+
 </resources>
