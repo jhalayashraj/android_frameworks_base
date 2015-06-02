@@ -116,7 +116,6 @@ public class NotificationPanelView extends PanelView implements
     private KeyguardStatusBarView mKeyguardStatusBar;
     public static QSContainer mQsContainer;
     private AutoReinflateContainer mQsAutoReinflateContainer;
-    private LinearLayout mTaskManagerPanel;
     private KeyguardStatusView mKeyguardStatusView;
     private TextView mClockView;
     private View mReserveNotificationSpace;
@@ -274,6 +273,10 @@ public class NotificationPanelView extends PanelView implements
     private boolean mKeyguardWeatherEnabled;
     private TextView mKeyguardWeatherInfo;
     private WeatherControllerImpl mWeatherController;
+
+    // Task manager
+    private boolean mShowTaskManager;
+    private LinearLayout mTaskManagerPanel;
 
     public NotificationPanelView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -1726,8 +1729,7 @@ public class NotificationPanelView extends PanelView implements
     }
 
     public void setTaskManagerVisibility(boolean mTaskManagerShowing) {
-        if (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.ENABLE_TASK_MANAGER, 0) == 1) {
+        if (mShowTaskManager) {
             cancelAnimation();
             boolean expandVisually = mQsExpanded || mStackScrollerOverscrolling;
             mQsContainer.getQsPanel().setVisibility(expandVisually && !mTaskManagerShowing
@@ -2666,7 +2668,6 @@ public class NotificationPanelView extends PanelView implements
         } else if (source == StatusBarManager.CAMERA_LAUNCH_SOURCE_SCREEN_GESTURE) {
             mLastCameraLaunchSource = KeyguardBottomAreaView.CAMERA_LAUNCH_SOURCE_SCREEN_GESTURE;
         } else {
-
             // Default.
             mLastCameraLaunchSource = KeyguardBottomAreaView.CAMERA_LAUNCH_SOURCE_AFFORDANCE;
         }
@@ -2783,6 +2784,8 @@ public class NotificationPanelView extends PanelView implements
                     Settings.System.BLUR_LIGHT_COLOR_PREFERENCE_KEY), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.BLUR_MIXED_COLOR_PREFERENCE_KEY), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.ENABLE_TASK_MANAGER), false, this, UserHandle.USER_ALL);
             update();
         }
 
@@ -2825,6 +2828,8 @@ public class NotificationPanelView extends PanelView implements
                     Settings.System.STATUS_BAR_EXPANDED_ENABLED_PREFERENCE_KEY, 0, UserHandle.USER_CURRENT) == 1;
             mTranslucencyPercentage = Settings.System.getInt(mContext.getContentResolver(),
                     Settings.System.TRANSLUCENT_QUICK_SETTINGS_PRECENTAGE_PREFERENCE_KEY, 60);
+	    mShowTaskManager = Settings.System.getIntForUser(resolver,
+                    Settings.System.ENABLE_TASK_MANAGER, 0, UserHandle.USER_CURRENT) == 1;
 
             mBlurDarkColorFilter = Settings.System.getInt(mContext.getContentResolver(), 
                     Settings.System.BLUR_DARK_COLOR_PREFERENCE_KEY, Color.LTGRAY);
