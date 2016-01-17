@@ -3729,6 +3729,12 @@ public final class Settings {
          */
         public static final String NETWORK_TRAFFIC_HIDEARROW = "network_traffic_hidearrow";
 
+	/**
+         * whether to enable torch on lockscreen
+         * @hide
+         */
+        public static final String KEYGUARD_TOGGLE_TORCH = "keyguard_toggle_torch";
+
         /**
          * @hide
          */
