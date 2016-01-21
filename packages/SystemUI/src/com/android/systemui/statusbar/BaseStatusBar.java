@@ -102,6 +102,7 @@ import com.android.systemui.SwipeHelper;
 import com.android.systemui.SystemUI;
 import com.android.systemui.assist.AssistManager;
 import com.android.systemui.recents.Recents;
+import com.android.systemui.recents.RecentsActivity;
 import com.android.systemui.statusbar.NotificationData.Entry;
 import com.android.systemui.statusbar.NotificationGuts.OnGutsClosedListener;
 import com.android.systemui.statusbar.phone.NavigationBarView;
@@ -113,7 +114,9 @@ import com.android.systemui.statusbar.policy.RemoteInputView;
 import com.android.systemui.statusbar.stack.NotificationStackScrollLayout;
 import com.android.systemui.statusbar.stack.StackStateAnimator;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -170,7 +173,7 @@ public abstract class BaseStatusBar extends SystemUI implements
     protected H mHandler = createHandler();
 
     // all notifications
-    protected NotificationData mNotificationData;
+    public static NotificationData mNotificationData;
     protected NotificationStackScrollLayout mStackScroller;
 
     protected NotificationGroupManager mGroupManager = new NotificationGroupManager();
@@ -1276,6 +1279,7 @@ public abstract class BaseStatusBar extends SystemUI implements
 
     @Override
     public void toggleRecentApps() {
+	RecentsActivity.startBlurTask();
         toggleRecents();
     }
 
