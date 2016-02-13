@@ -46,6 +46,7 @@
     <string name="quick_settings_music_label">Music</string>
     <string name="quick_settings_music_play">Play</string>
     <string name="quick_settings_music_pause">Pause</string>
+    <string name="quick_settings_ime_label">IME</string>
 
     <!-- Path data for portrait battery -->
     <string name="battery_portrait_path_full" translatable="false">M 5 2 H 19 V 21 H 5 V 2 Z</string>
