@@ -3777,6 +3777,13 @@ public final class Settings {
          */
         public static final String NETWORK_TRAFFIC_AUTOHIDE_THRESHOLD = "network_traffic_autohide_threshold";
 
+
+		/**
+         * Show four g instead of lte
+         * @hide
+         */
+        public static final String SHOW_FOURG = "show_fourg";
+
         /**
 	 * Whether to disable showing arrows in network traffic indicators
          * @hide
