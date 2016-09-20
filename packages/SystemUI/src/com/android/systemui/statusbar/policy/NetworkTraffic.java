@@ -2,6 +2,7 @@ package com.android.systemui.statusbar.policy;
 
 import java.text.DecimalFormat;
 
+import android.animation.ArgbEvaluator;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -12,7 +13,6 @@ import android.database.ContentObserver;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.PorterDuff;
-import android.graphics.PorterDuff.Mode;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.TrafficStats;
@@ -62,7 +62,11 @@ public class NetworkTraffic extends TextView {
     private int GB = MB * KB;
     private boolean mAutoHide;
     private int mAutoHideThreshold;
-private int mNetworkTrafficColor;
+    private int mDarkModeBackgroundColor;
+    private int mDarkModeFillColor;
+    private int mLightModeBackgroundColor;
+    private int mLightModeFillColor;
+    private int mIconTint = Color.WHITE;
 
     private Handler mTrafficHandler = new Handler() {
         @Override
@@ -184,9 +188,6 @@ private int mNetworkTrafficColor;
             resolver.registerContentObserver(Settings.System
                     .getUriFor(Settings.System.NETWORK_TRAFFIC_AUTOHIDE_THRESHOLD), false,
                     this, UserHandle.USER_ALL);
-             resolver.registerContentObserver(Settings.System
-                    .getUriFor(Settings.System.NETWORK_TRAFFIC_COLOR), false,
-                    this, UserHandle.USER_ALL);
         }
 
         /*
@@ -220,6 +221,12 @@ private int mNetworkTrafficColor;
         final Resources resources = getResources();
         txtSizeSingle = resources.getDimensionPixelSize(R.dimen.net_traffic_single_text_size);
         txtSizeMulti = resources.getDimensionPixelSize(R.dimen.net_traffic_multi_text_size);
+	mDarkModeBackgroundColor =
+                context.getColor(R.color.dark_mode_icon_color_dual_tone_background);
+        mDarkModeFillColor = context.getColor(R.color.dark_mode_icon_color_dual_tone_fill);
+        mLightModeBackgroundColor =
+                context.getColor(R.color.light_mode_icon_color_dual_tone_background);
+        mLightModeFillColor = context.getColor(R.color.light_mode_icon_color_dual_tone_fill);
         Handler mHandler = new Handler();
         SettingsObserver settingsObserver = new SettingsObserver(mHandler);
         settingsObserver.observe();
@@ -267,9 +274,6 @@ private int mNetworkTrafficColor;
     private void updateSettings() {
         ContentResolver resolver = mContext.getContentResolver();
 
-  int defaultColor = Settings.System.getInt(resolver,
-               Settings.System.NETWORK_TRAFFIC_COLOR, 0xFFFFFFFF);
-
         mAutoHide = Settings.System.getIntForUser(resolver,
                 Settings.System.NETWORK_TRAFFIC_AUTOHIDE, 0,
                 UserHandle.USER_CURRENT) == 1;
@@ -279,19 +283,9 @@ private int mNetworkTrafficColor;
                 UserHandle.USER_CURRENT);
 
         mState = Settings.System.getInt(resolver, Settings.System.NETWORK_TRAFFIC_STATE, 0);
-       
 
-           mNetworkTrafficColor = Settings.System.getInt(resolver,
-                Settings.System.NETWORK_TRAFFIC_COLOR, -2);
-
-            if (mNetworkTrafficColor == Integer.MIN_VALUE
-                || mNetworkTrafficColor == -2) {
-            mNetworkTrafficColor = defaultColor;
-        }
-
+	    int mNetworkTrafficColor = mIconTint;
             setTextColor(mNetworkTrafficColor);
-            updateTrafficDrawable();
-
 
         if (isSet(mState, MASK_UNIT)) {
             KB = KILOBYTE;
@@ -309,7 +303,7 @@ private int mNetworkTrafficColor;
                     mTrafficHandler.sendEmptyMessage(1);
                 }
                 setVisibility(View.VISIBLE);
-                updateTrafficDrawable();
+                updateTrafficDrawable(mNetworkTrafficColor);
                 return;
             }
         } else {
@@ -333,22 +327,37 @@ private int mNetworkTrafficColor;
         mTrafficHandler.removeMessages(1);
     }
 
-    private void updateTrafficDrawable() {
+    private void updateTrafficDrawable(int trafcolor) {
         int intTrafficDrawable;
-        Drawable drw = null;
-        if (isSet(mState, MASK_UP + MASK_DOWN)) {
-            intTrafficDrawable = R.drawable.stat_sys_network_traffic_updown;
-        } else if (isSet(mState, MASK_UP)) {
-            intTrafficDrawable = R.drawable.stat_sys_network_traffic_up;
-        } else if (isSet(mState, MASK_DOWN)) {
-            intTrafficDrawable = R.drawable.stat_sys_network_traffic_down;
-        } else {
-            intTrafficDrawable = 0;
-        }
- if (intTrafficDrawable != 0) {
-            drw = getContext().getResources().getDrawable(intTrafficDrawable);
-            drw.setColorFilter(mNetworkTrafficColor, PorterDuff.Mode.SRC_ATOP);
-        }
-        setCompoundDrawablesWithIntrinsicBounds(null, null, drw, null);
+        Drawable drawTrafficIcon = null;
+	if (!mHideArrow) {
+            if (isSet(mState, MASK_UP + MASK_DOWN)) {
+                intTrafficDrawable = R.drawable.stat_sys_network_traffic_updown;
+            } else if (isSet(mState, MASK_UP)) {
+                intTrafficDrawable = R.drawable.stat_sys_network_traffic_up;
+            } else if (isSet(mState, MASK_DOWN)) {
+                intTrafficDrawable = R.drawable.stat_sys_network_traffic_down;
+            } else {
+                intTrafficDrawable = 0;
+            }
+	    if (intTrafficDrawable != 0) {
+                drawTrafficIcon = getResources().getDrawable(intTrafficDrawable);
+	        drawTrafficIcon.setColorFilter(null);
+	        drawTrafficIcon.setColorFilter(trafcolor, PorterDuff.Mode.SRC_ATOP);
+            }
+	} else {
+	    drawTrafficIcon = null;
+	}
+        setCompoundDrawablesWithIntrinsicBounds(null, null, drawTrafficIcon, null);
+    }
+
+    private int getColorForDarkIntensity(float darkIntensity, int lightColor, int darkColor) {
+        return (int) ArgbEvaluator.getInstance().evaluate(darkIntensity, lightColor, darkColor);
+    }
+
+    public void setDarkIntensity(float darkIntensity) {
+        mIconTint = getColorForDarkIntensity(
+                darkIntensity, mLightModeFillColor, mDarkModeFillColor);
+        updateSettings();
     }
 }
