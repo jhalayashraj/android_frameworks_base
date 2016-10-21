@@ -65,6 +65,13 @@ public class BatteryMeterDrawable extends Drawable implements
 
     private static final float BOLT_LEVEL_THRESHOLD = 0.3f;  // opaque bolt below this fraction
 
+    // Values for the different battery styles
+    public static final int BATTERY_STYLE_PORTRAIT  = 0;
+    public static final int BATTERY_STYLE_CIRCLE    = 2;
+    public static final int BATTERY_STYLE_HIDDEN    = 4;
+    public static final int BATTERY_STYLE_LANDSCAPE = 5;
+    public static final int BATTERY_STYLE_TEXT      = 6;
+
     private final int[] mColors;
     private final int mIntrinsicWidth;
     private final int mIntrinsicHeight;
@@ -136,10 +143,10 @@ public class BatteryMeterDrawable extends Drawable implements
 	// Portrait is the default drawable style
 	this(context, handler, frameColor, BATTERY_STYLE_PORTRAIT);
     }
-
     public BatteryMeterDrawable(Context context, Handler handler, int frameColor, int style) {
         mContext = context;
         mHandler = handler;
+        mStyle = style;
         final Resources res = context.getResources();
         TypedArray levels = res.obtainTypedArray(R.array.batterymeter_color_levels);
         TypedArray colors = res.obtainTypedArray(R.array.batterymeter_color_values);
@@ -366,7 +373,6 @@ public class BatteryMeterDrawable extends Drawable implements
         if (!mInitialized) {
             init();
         }
-
         drawBattery(c);
     }
 
