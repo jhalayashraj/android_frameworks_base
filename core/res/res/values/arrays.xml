@@ -250,4 +250,7 @@
         <item>com.android.providers.downloads.ui</item>
     </string-array>
 
+    <string-array name="apps_with_opaque_hack">
+	<item>com.snapchat.android</item>
+    </string-array>
 </resources>
