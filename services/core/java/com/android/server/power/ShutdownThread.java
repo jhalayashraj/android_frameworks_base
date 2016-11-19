@@ -54,7 +54,6 @@ import android.system.ErrnoException;
 import android.system.Os;
 import android.widget.ListView;
 
-import com.android.internal.util.ThemeUtils;
 import com.android.internal.telephony.ITelephony;
 import com.android.server.pm.PackageManagerService;
 
@@ -149,7 +148,7 @@ public final class ShutdownThread extends Thread {
         mReboot = false;
         mRebootSafeMode = false;
         mReason = reason;
-        shutdownInner(getUiContext(context), confirm);
+        shutdownInner(context, confirm);
     }
 
     private static boolean isAdvancedRebootPossible(final Context context) {
@@ -205,29 +204,74 @@ public final class ShutdownThread extends Thread {
 
         if (confirm) {
             final CloseDialogReceiver closer = new CloseDialogReceiver(context);
-            final Context mUiContext = getUiContext(context);
+            final boolean advancedReboot = isAdvancedRebootPossible(context);
 
             if (sConfirmDialog != null) {
                 sConfirmDialog.dismiss();
+                sConfirmDialog = null;
             }
-            sConfirmDialog = new AlertDialog.Builder(mUiContext)
+            AlertDialog.Builder confirmDialogBuilder = new AlertDialog.Builder(context)
                     .setTitle(mRebootSafeMode
                             ? com.android.internal.R.string.reboot_safemode_title
-                            : com.android.internal.R.string.power_off)
-                    .setMessage(resourceId)
-                    .setPositiveButton(com.android.internal.R.string.yes, new DialogInterface.OnClickListener() {
+                            : showRebootOption
+                                    ? com.android.internal.R.string.reboot_title
+                                    : com.android.internal.R.string.power_off);
+
+            if (!advancedReboot) {
+                confirmDialogBuilder.setMessage(resourceId);
+            } else {
+                confirmDialogBuilder
+                      .setSingleChoiceItems(com.android.internal.R.array.shutdown_reboot_options,
+                              0, null);
+            }
+
+            confirmDialogBuilder.setPositiveButton(com.android.internal.R.string.yes,
+                    new DialogInterface.OnClickListener() {
+                        @Override
                         public void onClick(DialogInterface dialog, int which) {
+                            if (advancedReboot) {
+                                boolean softReboot = false;
+                                ListView reasonsList = ((AlertDialog)dialog).getListView();
+                                int selected = reasonsList.getCheckedItemPosition();
+                                if (selected != ListView.INVALID_POSITION) {
+                                    String actions[] = context.getResources().getStringArray(
+                                            com.android.internal.R.array.shutdown_reboot_actions);
+                                    if (selected >= 0 && selected < actions.length) {
+                                        mReason = actions[selected];
+                                        if (actions[selected].equals(SOFT_REBOOT)) {
+                                            doSoftReboot();
+                                            return;
+                                        }
+                                    }
+                                }
+
+                                mReboot = true;
+                            }
                             beginShutdownSequence(context);
-                        }
-                    })
-                    .setNegativeButton(com.android.internal.R.string.no, null)
-                    .create();
+                      }
+                  });
+
+            confirmDialogBuilder.setNegativeButton(com.android.internal.R.string.no, null);
+            sConfirmDialog = confirmDialogBuilder.create();
+
             closer.dialog = sConfirmDialog;
             sConfirmDialog.setOnDismissListener(closer);
             sConfirmDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
             sConfirmDialog.show();
         } else {
             beginShutdownSequence(context);
+        }
+    }
+
+    private static void doSoftReboot() {
+        try {
+            final IActivityManager am =
+                  ActivityManagerNative.asInterface(ServiceManager.checkService("activity"));
+            if (am != null) {
+                am.restart();
+            }
+        } catch (RemoteException e) {
+            Log.e(TAG, "failure trying to perform soft reboot", e);
         }
     }
 
@@ -266,7 +310,7 @@ public final class ShutdownThread extends Thread {
         mRebootSafeMode = false;
         mRebootHasProgressBar = false;
         mReason = reason;
-        shutdownInner(getUiContext(context), confirm);
+        shutdownInner(context, confirm);
     }
 
     /**
@@ -824,12 +868,5 @@ public final class ShutdownThread extends Thread {
         if (!done[0]) {
             Log.w(TAG, "Timed out waiting for uncrypt.");
         }
-    }
-
-    private static Context getUiContext(Context context) {
-        Context mUiContext = null;
-        mUiContext = ThemeUtils.createUiContext(context);
-        mUiContext.setTheme(android.R.style.Theme_DeviceDefault_Light_DarkActionBar);
-        return mUiContext != null ? mUiContext : context;
     }
 }
