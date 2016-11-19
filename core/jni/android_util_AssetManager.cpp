@@ -2007,13 +2007,11 @@ static void android_content_AssetManager_init(JNIEnv* env, jobject clazz, jboole
                 const char* overlay_dir = environment->getOverlayDir();
                 if (overlay_dir != NULL && strcmp(overlay_dir, "") != 0) {
                     ALOGD("Regionalization - getOverlayDir:%s", overlay_dir);
-                    verifySystemIdmaps(overlay_dir);
                 }
                 delete environment;
             }
         }
 
-        verifySystemIdmaps(AssetManager::OVERLAY_DIR);
     }
     AssetManager* am = new AssetManager();
     if (am == NULL) {
