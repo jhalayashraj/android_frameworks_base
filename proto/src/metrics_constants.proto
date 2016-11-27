@@ -2211,8 +2211,8 @@ message MetricsEvent {
     // Add new aosp constants above this line.
     // END OF AOSP CONSTANTS
 
-    // RR
-    RESURRECTED = 411;
+    // LR
+    LegendROM = 411;
 
     // Quick setting tiles
     QUICK_SETTINGS = 412;
