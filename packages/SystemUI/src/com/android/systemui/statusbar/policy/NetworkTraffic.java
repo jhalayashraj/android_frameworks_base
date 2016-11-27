@@ -61,6 +61,7 @@ public class NetworkTraffic extends TextView {
     private int MB = KB * KB;
     private int GB = MB * KB;
     private boolean mAutoHide;
+    private boolean mHideArrow;
     private int mAutoHideThreshold;
     private int mDarkModeBackgroundColor;
     private int mDarkModeFillColor;
@@ -276,6 +277,10 @@ public class NetworkTraffic extends TextView {
 
         mAutoHide = Settings.System.getIntForUser(resolver,
                 Settings.System.NETWORK_TRAFFIC_AUTOHIDE, 0,
+                UserHandle.USER_CURRENT) == 1;
+	
+	mHideArrow = Settings.System.getIntForUser(resolver,
+                Settings.System.NETWORK_TRAFFIC_HIDEARROW, 0,
                 UserHandle.USER_CURRENT) == 1;
 
         mAutoHideThreshold = Settings.System.getIntForUser(resolver,
