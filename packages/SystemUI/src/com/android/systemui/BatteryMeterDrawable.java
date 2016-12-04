@@ -614,9 +614,6 @@ public class BatteryMeterDrawable extends Drawable implements
             // has been set to clear.  Clear always clears regardless of alpha level ;)
             final BitmapDrawable bd = (BitmapDrawable) d;
             bd.getPaint().set(mPluggedIn ? mTextAndBoltPaint : mClearPaint);
-            if (mBoltOverlay) {
-                mBoltDrawable.setTint(getBoltColor());
-            }
         } else {
             d.setAlpha(mPluggedIn ? 255 : 0);
         }
