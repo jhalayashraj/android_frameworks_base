@@ -3730,6 +3730,13 @@ public final class Settings {
         public static final String NETWORK_TRAFFIC_HIDEARROW = "network_traffic_hidearrow";
 
 	/**
+         * Whether to display set of animations when prompting the power menu
+         *
+         * @hide
+         */
+        public static final String POWER_MENU_LOCKSCREEN = "lockscreen_enable_power_menu";
+
+	/**
          * whether to enable torch on lockscreen
          * @hide
          */
