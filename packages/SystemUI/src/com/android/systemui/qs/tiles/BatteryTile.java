@@ -84,6 +84,15 @@ public class BatteryTile extends QSTile<QSTile.State> implements BatteryControll
     }
 
     @Override
+    public QSIconView createTileView(Context context) {
+        QSIconView view = new QSIconView(context);
+        // The BatteryMeterDrawable wants to use the clear xfermode,
+        // put it on its own layer to not make it clear the background with it.
+        view.getIconView().setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        return view;
+    }
+
+    @Override
     public State newTileState() {
         return new QSTile.State();
     }
