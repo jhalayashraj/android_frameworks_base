@@ -904,8 +904,7 @@ public class NetworkStats implements Parcelable {
         if (pool.isEmpty()) {
             return true;
         }
-        Entry moved =
-                addTrafficToApplications(tunUid, tunIface, underlyingIface, tunIfaceTotal, pool);
+        Entry moved = addTrafficToApplications(tunIface,  underlyingIface, tunIfaceTotal, pool);
         deductTrafficFromVpnApp(tunUid, underlyingIface, moved);
 
         if (!moved.isEmpty()) {
@@ -920,9 +919,9 @@ public class NetworkStats implements Parcelable {
      * Initializes the data used by the migrateTun() method.
      *
      * This is the first pass iteration which does the following work:
-     * (1) Adds up all the traffic through the tunUid's underlyingIface
+     * (1) Adds up all the traffic through tun0.
+     * (2) Adds up all the traffic through the tunUid's underlyingIface
      *     (both foreground and background).
-     * (2) Adds up all the traffic through tun0 excluding traffic from the vpn app itself.
      */
     private void tunAdjustmentInit(int tunUid, String tunIface, String underlyingIface,
             Entry tunIfaceTotal, Entry underlyingIfaceTotal) {
@@ -942,9 +941,8 @@ public class NetworkStats implements Parcelable {
                 underlyingIfaceTotal.add(recycle);
             }
 
-            if (recycle.uid != tunUid && recycle.tag == TAG_NONE
-                    && Objects.equals(tunIface, recycle.iface)) {
-                // Add up all tunIface traffic excluding traffic from the vpn app itself.
+            if (recycle.tag == TAG_NONE && Objects.equals(tunIface, recycle.iface)) {
+                // Add up all tunIface traffic.
                 tunIfaceTotal.add(recycle);
             }
         }
@@ -960,15 +958,13 @@ public class NetworkStats implements Parcelable {
         return pool;
     }
 
-    private Entry addTrafficToApplications(int tunUid, String tunIface, String underlyingIface,
+    private Entry addTrafficToApplications(String tunIface, String underlyingIface,
             Entry tunIfaceTotal, Entry pool) {
         Entry moved = new Entry();
         Entry tmpEntry = new Entry();
         tmpEntry.iface = underlyingIface;
         for (int i = 0; i < size; i++) {
-            // the vpn app is excluded from the redistribution but all moved traffic will be
-            // deducted from the vpn app (see deductTrafficFromVpnApp below).
-            if (Objects.equals(iface[i], tunIface) && uid[i] != tunUid) {
+            if (Objects.equals(iface[i], tunIface)) {
                 if (tunIfaceTotal.rxBytes > 0) {
                     tmpEntry.rxBytes = pool.rxBytes * rxBytes[i] / tunIfaceTotal.rxBytes;
                 } else {

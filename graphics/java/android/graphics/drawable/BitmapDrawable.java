@@ -463,14 +463,31 @@ public class BitmapDrawable extends Drawable {
         return isAutoMirrored() && getLayoutDirection() == LayoutDirection.RTL;
     }
 
+    private void updateMirrorMatrix(float dx) {
+        if (mMirrorMatrix == null) {
+            mMirrorMatrix = new Matrix();
+        }
+        mMirrorMatrix.setTranslate(dx, 0);
+        mMirrorMatrix.preScale(-1.0f, 1.0f);
+    }
+
     @Override
     protected void onBoundsChange(Rect bounds) {
         mDstRectAndInsetsDirty = true;
 
-        final Bitmap bitmap = mBitmapState.mBitmap;
         final Shader shader = mBitmapState.mPaint.getShader();
-        if (bitmap != null && shader != null) {
-            updateShaderMatrix(bitmap, mBitmapState.mPaint, shader, needMirroring());
+        if (shader != null) {
+            if (needMirroring()) {
+                updateMirrorMatrix(bounds.right - bounds.left);
+                shader.setLocalMatrix(mMirrorMatrix);
+                mBitmapState.mPaint.setShader(shader);
+            } else {
+                if (mMirrorMatrix != null) {
+                    mMirrorMatrix = null;
+                    shader.setLocalMatrix(Matrix.IDENTITY_MATRIX);
+                    mBitmapState.mPaint.setShader(shader);
+                }
+            }
         }
     }
 
@@ -531,7 +548,19 @@ public class BitmapDrawable extends Drawable {
                 canvas.restore();
             }
         } else {
-            updateShaderMatrix(bitmap, paint, shader, needMirroring);
+            if (needMirroring) {
+                // Mirror the bitmap
+                updateMirrorMatrix(mDstRect.right - mDstRect.left);
+                shader.setLocalMatrix(mMirrorMatrix);
+                paint.setShader(shader);
+            } else {
+                if (mMirrorMatrix != null) {
+                    mMirrorMatrix = null;
+                    shader.setLocalMatrix(Matrix.IDENTITY_MATRIX);
+                    paint.setShader(shader);
+                }
+            }
+
             canvas.drawRect(mDstRect, paint);
         }
 
@@ -542,51 +571,6 @@ public class BitmapDrawable extends Drawable {
         if (restoreAlpha >= 0) {
             paint.setAlpha(restoreAlpha);
         }
-    }
-
-    /**
-     * Updates the {@code paint}'s shader matrix to be consistent with the
-     * destination size and layout direction.
-     *
-     * @param bitmap the bitmap to be drawn
-     * @param paint the paint used to draw the bitmap
-     * @param shader the shader to set on the paint
-     * @param needMirroring whether the bitmap should be mirrored
-     */
-    private void updateShaderMatrix(@NonNull Bitmap bitmap, @NonNull Paint paint,
-            @NonNull Shader shader, boolean needMirroring) {
-        final int sourceDensity = bitmap.getDensity();
-        final int targetDensity = mTargetDensity;
-        final boolean needScaling = sourceDensity != 0 && sourceDensity != targetDensity;
-        if (needScaling || needMirroring) {
-            final Matrix matrix = getOrCreateMirrorMatrix();
-            matrix.reset();
-
-            if (needMirroring) {
-                final int dx = mDstRect.right - mDstRect.left;
-                matrix.setTranslate(dx, 0);
-                matrix.setScale(-1, 1);
-            }
-
-            if (needScaling) {
-                final float densityScale = targetDensity / (float) sourceDensity;
-                matrix.postScale(densityScale, densityScale);
-            }
-
-            shader.setLocalMatrix(matrix);
-        } else {
-            mMirrorMatrix = null;
-            shader.setLocalMatrix(Matrix.IDENTITY_MATRIX);
-        }
-
-        paint.setShader(shader);
-    }
-
-    private Matrix getOrCreateMirrorMatrix() {
-        if (mMirrorMatrix == null) {
-            mMirrorMatrix = new Matrix();
-        }
-        return mMirrorMatrix;
     }
 
     private void updateDstRectAndInsetsIfDirty() {

@@ -52,9 +52,11 @@ static struct {
 } gRectClassInfo;
 
 // Also used in PdfRenderer.cpp
+Mutex sPdfiumLock;
 int sUnmatchedPdfiumInitRequestCount = 0;
 
 static void initializeLibraryIfNeeded() {
+    Mutex::Autolock _l(sPdfiumLock);
     if (sUnmatchedPdfiumInitRequestCount == 0) {
         FPDF_InitLibrary();
     }
@@ -62,6 +64,7 @@ static void initializeLibraryIfNeeded() {
 }
 
 static void destroyLibraryIfNeeded() {
+    Mutex::Autolock _l(sPdfiumLock);
     sUnmatchedPdfiumInitRequestCount--;
     if (sUnmatchedPdfiumInitRequestCount == 0) {
        FPDF_DestroyLibrary();

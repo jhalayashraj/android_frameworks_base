@@ -226,13 +226,6 @@ public class DisconnectCause {
      */
     public static final int DATA_LIMIT_REACHED = 55;
 
-    /**
-     * The emergency call was terminated because it was dialed on the wrong SIM slot.
-     * The call needs to be redialed the other slot.
-     * {@hide}
-     */
-    public static final int DIALED_ON_WRONG_SLOT = 56;
-
     //*********************************************************************************************
     // When adding a disconnect type:
     // 1) Please assign the new type the next id value below.
@@ -241,14 +234,14 @@ public class DisconnectCause {
     // 4) Update toString() with the newly added disconnect type.
     // 5) Update android.telecom.DisconnectCauseUtil with any mappings to a telecom.DisconnectCause.
     //
-    // NextId: 57
+    // NextId: 56
     //*********************************************************************************************
 
     /** Smallest valid value for call disconnect codes. */
     public static final int MINIMUM_VALID_VALUE = NOT_DISCONNECTED;
 
     /** Largest valid value for call disconnect codes. */
-    public static final int MAXIMUM_VALID_VALUE = DIALED_ON_WRONG_SLOT;
+    public static final int MAXIMUM_VALID_VALUE = DATA_LIMIT_REACHED;
 
     /** Private constructor to avoid class instantiation. */
     private DisconnectCause() {
@@ -368,8 +361,6 @@ public class DisconnectCause {
             return "DATA_DISABLED";
         case DATA_LIMIT_REACHED:
             return "DATA_LIMIT_REACHED";
-        case DIALED_ON_WRONG_SLOT:
-            return "DIALED_ON_WRONG_SLOT";
         default:
             return "INVALID: " + cause;
         }

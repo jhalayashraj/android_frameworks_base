@@ -40,9 +40,6 @@ public class ImageFloatingTextView extends TextView {
     /** Number of lines from the top to indent */
     private int mIndentLines;
 
-    /** Resolved layout direction */
-    private int mResolvedDirection = LAYOUT_DIRECTION_UNDEFINED;
-
     public ImageFloatingTextView(Context context) {
         this(context, null);
     }
@@ -85,26 +82,13 @@ public class ImageFloatingTextView extends TextView {
                 margins[i] = endMargin;
             }
         }
-        if (mResolvedDirection == LAYOUT_DIRECTION_RTL) {
+        if (getLayoutDirection() == LAYOUT_DIRECTION_RTL) {
             builder.setIndents(margins, null);
         } else {
             builder.setIndents(null, margins);
         }
 
         return builder.build();
-    }
-
-    @Override
-    public void onRtlPropertiesChanged(int layoutDirection) {
-        super.onRtlPropertiesChanged(layoutDirection);
-
-        if (layoutDirection != mResolvedDirection && isLayoutDirectionResolved()) {
-            mResolvedDirection = layoutDirection;
-            if (mIndentLines > 0) {
-                // Invalidate layout.
-                setHint(getHint());
-            }
-        }
     }
 
     @RemotableViewMethod

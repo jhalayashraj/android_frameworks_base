@@ -19,7 +19,6 @@ package com.android.server.am;
 import android.content.Intent;
 import android.os.UserHandle;
 import android.util.ArraySet;
-import android.util.Log;
 import android.util.Slog;
 
 import com.android.server.am.ActivityManagerService.GrantUri;
@@ -94,16 +93,7 @@ final class UriPermission {
     }
 
     private void updateModeFlags() {
-        final int oldModeFlags = modeFlags;
         modeFlags = ownedModeFlags | globalModeFlags | persistableModeFlags | persistedModeFlags;
-
-        if (Log.isLoggable(TAG, Log.VERBOSE) && (modeFlags != oldModeFlags)) {
-            Slog.d(TAG,
-                    "Permission for " + targetPkg + " to " + uri + " is changing from 0x"
-                            + Integer.toHexString(oldModeFlags) + " to 0x"
-                            + Integer.toHexString(modeFlags),
-                    new Throwable());
-        }
     }
 
     /**

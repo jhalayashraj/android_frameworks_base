@@ -176,7 +176,7 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener,
         mSkipFirstFrame = skipFirstFrame;
         mOnAnimationFinished = onAnimationFinished;
 
-        if (!mKeyguardUpdateMonitor.needsSlowUnlockTransition()) {
+        if (mKeyguardUpdateMonitor.isUserUnlocked()) {
             scheduleUpdate();
 
             // No need to wait for the next frame to be drawn for this case - onPreDraw will execute
@@ -194,14 +194,6 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener,
         if (mAnimateKeyguardFadingOut) {
             endAnimateKeyguardFadingOut(true /* force */);
         }
-    }
-
-    public void animateKeyguardUnoccluding(long duration) {
-        mAnimateChange = false;
-        setScrimBehindColor(0f);
-        mAnimateChange = true;
-        scheduleUpdate();
-        mDurationOverride = duration;
     }
 
     public void animateGoingToFullShade(long delay, long duration) {
@@ -241,9 +233,9 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener,
     }
 
     private float getScrimInFrontAlpha() {
-        return mKeyguardUpdateMonitor.needsSlowUnlockTransition()
-                ? SCRIM_IN_FRONT_ALPHA_LOCKED
-                : SCRIM_IN_FRONT_ALPHA;
+        return mKeyguardUpdateMonitor.isUserUnlocked()
+                ? SCRIM_IN_FRONT_ALPHA
+                : SCRIM_IN_FRONT_ALPHA_LOCKED;
     }
     private void scheduleUpdate() {
         if (mUpdatePending) return;
@@ -405,7 +397,7 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener,
     }
 
     private Interpolator getInterpolator() {
-        if (mAnimateKeyguardFadingOut && mKeyguardUpdateMonitor.needsSlowUnlockTransition()) {
+        if (mAnimateKeyguardFadingOut && !mKeyguardUpdateMonitor.isUserUnlocked()) {
             return KEYGUARD_FADE_OUT_INTERPOLATOR_LOCKED;
         } else if (mAnimateKeyguardFadingOut) {
             return KEYGUARD_FADE_OUT_INTERPOLATOR;

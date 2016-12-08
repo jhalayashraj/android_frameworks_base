@@ -608,10 +608,6 @@ void CanvasContext::draw() {
     }
 
     GpuMemoryTracker::onFrameCompleted();
-#ifdef BUGREPORT_FONT_CACHE_USAGE
-    caches.fontRenderer.getFontRenderer().historyTracker().frameCompleted();
-#endif
-
 }
 
 // Called by choreographer to do an RT-driven animation
@@ -637,9 +633,6 @@ void CanvasContext::prepareAndDraw(RenderNode* node) {
     prepareTree(info, frameInfo, systemTime(CLOCK_MONOTONIC), node);
     if (info.out.canDrawThisFrame) {
         draw();
-    } else {
-        // wait on fences so tasks don't overlap next frame
-        waitOnFences();
     }
 }
 

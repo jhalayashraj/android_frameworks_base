@@ -18,6 +18,11 @@
                   xmlns:sysui="http://schemas.android.com/apk/res-auto"
                   android:title="@string/other">
 
+    <com.android.systemui.tuner.TunerSwitch
+            android:key="overview_nav_bar_gesture"
+            android:title="@string/overview_nav_bar_gesture"
+            android:summary="@string/overview_nav_bar_gesture_desc" />
+
     <!-- importance -->
     <Preference
             android:key="power_notification_controls"

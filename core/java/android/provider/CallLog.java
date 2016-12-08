@@ -304,10 +304,8 @@ public class CallLog {
 
         /**
          * The cached name associated with the phone number, if it exists.
-         *
-         * <p>This value is typically filled in by the dialer app for the caching purpose,
-         * so it's not guaranteed to be present, and may not be current if the contact
-         * information associated with this number has changed.
+         * This value is not guaranteed to be current, if the contact information
+         * associated with this number has changed.
          * <P>Type: TEXT</P>
          */
         public static final String CACHED_NAME = "name";
@@ -315,10 +313,8 @@ public class CallLog {
         /**
          * The cached number type (Home, Work, etc) associated with the
          * phone number, if it exists.
-         *
-         * <p>This value is typically filled in by the dialer app for the caching purpose,
-         * so it's not guaranteed to be present, and may not be current if the contact
-         * information associated with this number has changed.
+         * This value is not guaranteed to be current, if the contact information
+         * associated with this number has changed.
          * <P>Type: INTEGER</P>
          */
         public static final String CACHED_NUMBER_TYPE = "numbertype";
@@ -326,10 +322,8 @@ public class CallLog {
         /**
          * The cached number label, for a custom number type, associated with the
          * phone number, if it exists.
-         *
-         * <p>This value is typically filled in by the dialer app for the caching purpose,
-         * so it's not guaranteed to be present, and may not be current if the contact
-         * information associated with this number has changed.
+         * This value is not guaranteed to be current, if the contact information
+         * associated with this number has changed.
          * <P>Type: TEXT</P>
          */
         public static final String CACHED_NUMBER_LABEL = "numberlabel";
@@ -365,50 +359,40 @@ public class CallLog {
 
         /**
          * The cached URI to look up the contact associated with the phone number, if it exists.
-         *
-         * <p>This value is typically filled in by the dialer app for the caching purpose,
-         * so it's not guaranteed to be present, and may not be current if the contact
-         * information associated with this number has changed.
+         * This value may not be current if the contact information associated with this number
+         * has changed.
          * <P>Type: TEXT</P>
          */
         public static final String CACHED_LOOKUP_URI = "lookup_uri";
 
         /**
          * The cached phone number of the contact which matches this entry, if it exists.
-         *
-         * <p>This value is typically filled in by the dialer app for the caching purpose,
-         * so it's not guaranteed to be present, and may not be current if the contact
-         * information associated with this number has changed.
+         * This value may not be current if the contact information associated with this number
+         * has changed.
          * <P>Type: TEXT</P>
          */
         public static final String CACHED_MATCHED_NUMBER = "matched_number";
 
         /**
          * The cached normalized(E164) version of the phone number, if it exists.
-         *
-         * <p>This value is typically filled in by the dialer app for the caching purpose,
-         * so it's not guaranteed to be present, and may not be current if the contact
-         * information associated with this number has changed.
+         * This value may not be current if the contact information associated with this number
+         * has changed.
          * <P>Type: TEXT</P>
          */
         public static final String CACHED_NORMALIZED_NUMBER = "normalized_number";
 
         /**
          * The cached photo id of the picture associated with the phone number, if it exists.
-         *
-         * <p>This value is typically filled in by the dialer app for the caching purpose,
-         * so it's not guaranteed to be present, and may not be current if the contact
-         * information associated with this number has changed.
+         * This value may not be current if the contact information associated with this number
+         * has changed.
          * <P>Type: INTEGER (long)</P>
          */
         public static final String CACHED_PHOTO_ID = "photo_id";
 
         /**
          * The cached photo URI of the picture associated with the phone number, if it exists.
-         *
-         * <p>This value is typically filled in by the dialer app for the caching purpose,
-         * so it's not guaranteed to be present, and may not be current if the contact
-         * information associated with this number has changed.
+         * This value may not be current if the contact information associated with this number
+         * has changed.
          * <P>Type: TEXT (URI)</P>
          */
         public static final String CACHED_PHOTO_URI = "photo_uri";
@@ -416,10 +400,9 @@ public class CallLog {
         /**
          * The cached phone number, formatted with formatting rules based on the country the
          * user was in when the call was made or received.
-         *
-         * <p>This value is typically filled in by the dialer app for the caching purpose,
-         * so it's not guaranteed to be present, and may not be current if the contact
-         * information associated with this number has changed.
+         * This value is not guaranteed to be present, and may not be current if the contact
+         * information associated with this number
+         * has changed.
          * <P>Type: TEXT</P>
          */
         public static final String CACHED_FORMATTED_NUMBER = "formatted_number";

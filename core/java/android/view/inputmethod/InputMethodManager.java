@@ -2056,10 +2056,12 @@ public final class InputMethodManager {
      * have any input method subtype.
      */
     public InputMethodSubtype getCurrentInputMethodSubtype() {
-        try {
-            return mService.getCurrentInputMethodSubtype();
-        } catch (RemoteException e) {
-            throw e.rethrowFromSystemServer();
+        synchronized (mH) {
+            try {
+                return mService.getCurrentInputMethodSubtype();
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
+            }
         }
     }
 

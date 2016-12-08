@@ -371,12 +371,7 @@ static void nativeSetDisplaySurface(JNIEnv* env, jclass clazz,
     if (sur != NULL) {
         bufferProducer = sur->getIGraphicBufferProducer();
     }
-    status_t err = SurfaceComposerClient::setDisplaySurface(token,
-            bufferProducer);
-    if (err != NO_ERROR) {
-        doThrowIAE(env, "Illegal Surface, could not enable async mode. Was this"
-                " Surface created with singleBufferMode?");
-    }
+    SurfaceComposerClient::setDisplaySurface(token, bufferProducer);
 }
 
 static void nativeSetDisplayLayerStack(JNIEnv* env, jclass clazz,

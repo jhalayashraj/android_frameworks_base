@@ -35,5 +35,4 @@ oneway interface IRecentsNonSystemUserCallbacks {
             in Rect initialBounds);
     void onDraggingInRecents(float distanceFromTop);
     void onDraggingInRecentsEnded(float velocity);
-    void showCurrentUserToast(int msgResId, int msgLength);
 }

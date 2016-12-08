@@ -535,18 +535,6 @@ public class VoiceInteractionManagerService extends SystemService {
                     + " user=" + userHandle);
         }
 
-        ComponentName getCurAssistant(int userHandle) {
-            String curAssistant = Settings.Secure.getStringForUser(
-                    mContext.getContentResolver(),
-                    Settings.Secure.ASSISTANT, userHandle);
-            if (TextUtils.isEmpty(curAssistant)) {
-                return null;
-            }
-            if (DEBUG) Slog.d(TAG, "getCurAssistant curAssistant=" + curAssistant
-                    + " user=" + userHandle);
-            return ComponentName.unflattenFromString(curAssistant);
-        }
-
         void resetCurAssistant(int userHandle) {
             Settings.Secure.putStringForUser(mContext.getContentResolver(),
                     Settings.Secure.ASSISTANT, null, userHandle);
@@ -1190,7 +1178,6 @@ public class VoiceInteractionManagerService extends SystemService {
                 synchronized (VoiceInteractionManagerServiceStub.this) {
                     ComponentName curInteractor = getCurInteractor(userHandle);
                     ComponentName curRecognizer = getCurRecognizer(userHandle);
-                    ComponentName curAssistant = getCurAssistant(userHandle);
                     if (curRecognizer == null) {
                         // Could a new recognizer appear when we don't have one pre-installed?
                         if (anyPackagesAppearing()) {
@@ -1209,7 +1196,6 @@ public class VoiceInteractionManagerService extends SystemService {
                             // the default config.
                             setCurInteractor(null, userHandle);
                             setCurRecognizer(null, userHandle);
-                            resetCurAssistant(userHandle);
                             initForUser(userHandle);
                             return;
                         }
@@ -1224,20 +1210,6 @@ public class VoiceInteractionManagerService extends SystemService {
                             }
                         }
                         return;
-                    }
-
-                    if (curAssistant != null) {
-                        int change = isPackageDisappearing(curAssistant.getPackageName());
-                        if (change == PACKAGE_PERMANENT_CHANGE) {
-                            // If the currently set assistant is being removed, then we should
-                            // reset back to the default state (which is probably that we prefer
-                            // to have the default full voice interactor enabled).
-                            setCurInteractor(null, userHandle);
-                            setCurRecognizer(null, userHandle);
-                            resetCurAssistant(userHandle);
-                            initForUser(userHandle);
-                            return;
-                        }
                     }
 
                     // There is no interactor, so just deal with a simple recognizer.

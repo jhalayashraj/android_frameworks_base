@@ -452,12 +452,8 @@ public class GnssLocationProvider implements LocationProviderInterface {
             new ConnectivityManager.NetworkCallback() {
         @Override
         public void onAvailable(Network network) {
-            if (mInjectNtpTimePending == STATE_PENDING_NETWORK) {
-                requestUtcTime();
-            }
-            if (mDownloadXtraDataPending == STATE_PENDING_NETWORK) {
-                xtraDownloadRequest();
-            }
+            requestUtcTime();
+            xtraDownloadRequest();
         }
     };
 
@@ -1006,11 +1002,6 @@ public class GnssLocationProvider implements LocationProviderInterface {
     }
 
     private void handleDownloadXtraData() {
-        if (!mSupportsXtra) {
-            // native code reports xtra not supported, don't try
-            Log.d(TAG, "handleDownloadXtraData() called when Xtra not supported");
-            return;
-        }
         if (mDownloadXtraDataPending == STATE_DOWNLOADING) {
             // already downloading data
             return;
@@ -2134,7 +2125,9 @@ public class GnssLocationProvider implements LocationProviderInterface {
                     handleInjectNtpTime();
                     break;
                 case DOWNLOAD_XTRA_DATA:
-                    handleDownloadXtraData();
+                    if (mSupportsXtra) {
+                        handleDownloadXtraData();
+                    }
                     break;
                 case INJECT_NTP_TIME_FINISHED:
                     mInjectNtpTimePending = STATE_IDLE;

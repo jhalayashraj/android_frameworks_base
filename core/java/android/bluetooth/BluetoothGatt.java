@@ -41,6 +41,7 @@ public final class BluetoothGatt implements BluetoothProfile {
     private static final boolean DBG = true;
     private static final boolean VDBG = false;
 
+    private final Context mContext;
     private IBluetoothGatt mService;
     private BluetoothGattCallback mCallback;
     private int mClientIf;
@@ -495,8 +496,9 @@ public final class BluetoothGatt implements BluetoothProfile {
             }
         };
 
-    /*package*/ BluetoothGatt(IBluetoothGatt iGatt, BluetoothDevice device,
+    /*package*/ BluetoothGatt(Context context, IBluetoothGatt iGatt, BluetoothDevice device,
                                 int transport) {
+        mContext = context;
         mService = iGatt;
         mDevice = device;
         mTransport = transport;

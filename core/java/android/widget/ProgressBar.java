@@ -22,7 +22,6 @@ import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.content.Context;
 import android.content.res.ColorStateList;
-import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -231,7 +230,7 @@ public class ProgressBar extends View {
     private Drawable mCurrentDrawable;
     private ProgressTintInfo mProgressTintInfo;
 
-    int mSampleWidth = 0;
+    Bitmap mSampleTile;
     private boolean mNoInvalidate;
     private Interpolator mInterpolator;
     private RefreshProgressRunnable mRefreshProgressRunnable;
@@ -506,13 +505,14 @@ public class ProgressBar extends View {
         }
 
         if (drawable instanceof BitmapDrawable) {
-            final Drawable.ConstantState cs = drawable.getConstantState();
-            final BitmapDrawable clone = (BitmapDrawable) cs.newDrawable(getResources());
-            clone.setTileModeXY(Shader.TileMode.REPEAT, Shader.TileMode.CLAMP);
-
-            if (mSampleWidth <= 0) {
-                mSampleWidth = clone.getIntrinsicWidth();
+            final BitmapDrawable bitmap = (BitmapDrawable) drawable;
+            final Bitmap tileBitmap = bitmap.getBitmap();
+            if (mSampleTile == null) {
+                mSampleTile = tileBitmap;
             }
+
+            final BitmapDrawable clone = (BitmapDrawable) bitmap.getConstantState().newDrawable();
+            clone.setTileModeXY(Shader.TileMode.REPEAT, Shader.TileMode.CLAMP);
 
             if (clip) {
                 return new ClipDrawable(clone, Gravity.LEFT, ClipDrawable.HORIZONTAL);

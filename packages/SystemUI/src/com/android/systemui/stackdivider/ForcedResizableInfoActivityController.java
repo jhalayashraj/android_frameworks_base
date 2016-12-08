@@ -20,14 +20,12 @@ import android.app.ActivityOptions;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
-import android.os.UserHandle;
 import android.util.ArraySet;
 import android.widget.Toast;
 
 import com.android.systemui.R;
 import com.android.systemui.recents.events.EventBus;
 import com.android.systemui.recents.events.activity.AppTransitionFinishedEvent;
-import com.android.systemui.recents.events.component.ShowUserToastEvent;
 import com.android.systemui.recents.misc.SystemServicesProxy;
 import com.android.systemui.recents.misc.SystemServicesProxy.TaskStackListener;
 import com.android.systemui.stackdivider.events.StartedDragingEvent;
@@ -102,8 +100,9 @@ public class ForcedResizableInfoActivityController {
     }
 
     private void activityDismissingDockedStack() {
-        EventBus.getDefault().send(new ShowUserToastEvent(
-                R.string.dock_non_resizeble_failed_to_dock_text, Toast.LENGTH_SHORT));
+        Toast toast = Toast.makeText(mContext, R.string.dock_non_resizeble_failed_to_dock_text,
+                Toast.LENGTH_SHORT);
+        toast.show();
     }
 
     private void showPending() {
@@ -113,7 +112,7 @@ public class ForcedResizableInfoActivityController {
             ActivityOptions options = ActivityOptions.makeBasic();
             options.setLaunchTaskId(mPendingTaskIds.valueAt(i));
             options.setTaskOverlay(true);
-            mContext.startActivityAsUser(intent, options.toBundle(), UserHandle.CURRENT);
+            mContext.startActivity(intent, options.toBundle());
         }
         mPendingTaskIds.clear();
     }

@@ -437,7 +437,7 @@ public class VolumeInfo implements Parcelable {
 
         final Intent intent = new Intent(DocumentsContract.ACTION_BROWSE);
         intent.addCategory(Intent.CATEGORY_DEFAULT);
-        intent.setDataAndType(uri, DocumentsContract.Root.MIME_TYPE_ITEM);
+        intent.setData(uri);
 
         // note that docsui treats this as *force* show advanced. So sending
         // false permits advanced to be shown based on user preferences.

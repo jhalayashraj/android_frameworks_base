@@ -43,11 +43,13 @@ public class PrefState implements OnSharedPreferenceChangeListener {
     public void addCat(Cat cat) {
         mPrefs.edit()
               .putString(CAT_KEY_PREFIX + String.valueOf(cat.getSeed()), cat.getName())
-              .apply();
+              .commit();
     }
 
     public void removeCat(Cat cat) {
-        mPrefs.edit().remove(CAT_KEY_PREFIX + String.valueOf(cat.getSeed())).apply();
+        mPrefs.edit()
+                .remove(CAT_KEY_PREFIX + String.valueOf(cat.getSeed()))
+                .commit();
     }
 
     public List<Cat> getCats() {
@@ -69,7 +71,7 @@ public class PrefState implements OnSharedPreferenceChangeListener {
     }
 
     public void setFoodState(int foodState) {
-        mPrefs.edit().putInt(FOOD_STATE, foodState).apply();
+        mPrefs.edit().putInt(FOOD_STATE, foodState).commit();
     }
 
     public void setListener(PrefsListener listener) {

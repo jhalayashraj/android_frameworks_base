@@ -32,7 +32,6 @@ public class OsTests {
         suite.addTestSuite(IdleHandlerTest.class);
         suite.addTestSuite(MessageQueueTest.class);
         suite.addTestSuite(MessengerTest.class);
-        suite.addTestSuite(PatternMatcherTest.class);
         suite.addTestSuite(SystemPropertiesTest.class);
 
         return suite;

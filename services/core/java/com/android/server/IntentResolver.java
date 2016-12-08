@@ -364,7 +364,6 @@ public abstract class IntentResolver<F extends IntentFilter, R extends Object> {
             buildResolveList(intent, categories, debug, defaultOnly,
                     resolvedType, scheme, listCut.get(i), resultList, userId);
         }
-        filterResults(resultList);
         sortResults(resultList);
         return resultList;
     }
@@ -458,7 +457,6 @@ public abstract class IntentResolver<F extends IntentFilter, R extends Object> {
             buildResolveList(intent, categories, debug, defaultOnly,
                     resolvedType, scheme, schemeCut, finalList, userId);
         }
-        filterResults(finalList);
         sortResults(finalList);
 
         if (debug) {
@@ -521,12 +519,6 @@ public abstract class IntentResolver<F extends IntentFilter, R extends Object> {
     @SuppressWarnings("unchecked")
     protected void sortResults(List<R> results) {
         Collections.sort(results, mResolvePrioritySorter);
-    }
-
-    /**
-     * Apply filtering to the results. This happens before the results are sorted.
-     */
-    protected void filterResults(List<R> results) {
     }
 
     protected void dumpFilter(PrintWriter out, String prefix, F filter) {

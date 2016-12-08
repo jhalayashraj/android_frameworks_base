@@ -320,9 +320,4 @@ public class QSContainer extends FrameLayout {
     public int getQsMinExpansionHeight() {
         return mHeader.getHeight();
     }
-
-    public void hideImmediately() {
-        animate().cancel();
-        setY(-mHeader.getHeight());
-    }
 }

@@ -53,8 +53,7 @@ public final class Events {
      */
     public static boolean isTouchType(int toolType) {
         return toolType == MotionEvent.TOOL_TYPE_FINGER
-                || toolType == MotionEvent.TOOL_TYPE_STYLUS
-                || toolType == MotionEvent.TOOL_TYPE_UNKNOWN;
+                || toolType == MotionEvent.TOOL_TYPE_STYLUS;
     }
 
     /**

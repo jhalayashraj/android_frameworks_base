@@ -25,5 +25,4 @@ interface IRecoverySystem {
     boolean uncrypt(in String packageFile, IRecoverySystemProgressListener listener);
     boolean setupBcb(in String command);
     boolean clearBcb();
-    void rebootRecoveryWithCommand(in String command);
 }

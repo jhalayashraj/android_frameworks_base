@@ -81,7 +81,7 @@ public class SyncAdaptersCache extends RegisteredServicesCache<SyncAdapterType> 
                     sa.getString(com.android.internal.R.styleable
                             .SyncAdapter_settingsActivity);
             return new SyncAdapterType(authority, accountType, userVisible, supportsUploading,
-                    isAlwaysSyncable, allowParallelSyncs, settingsActivity, packageName);
+                    isAlwaysSyncable, allowParallelSyncs, settingsActivity);
         } finally {
             sa.recycle();
         }

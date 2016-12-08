@@ -160,7 +160,6 @@ public class MediaFocusControl {
                     Log.i(TAG, "AudioFocus  removeFocusStackEntry(): removing entry for "
                             + clientToRemove);
                     stackIterator.remove();
-                    // stack entry not used anymore, clear references
                     fr.release();
                 }
             }
@@ -172,7 +171,7 @@ public class MediaFocusControl {
      * Called synchronized on mAudioFocusLock
      * Remove focus listeners from the focus stack for a particular client when it has died.
      */
-    private void removeFocusStackEntryOnDeath(IBinder cb) {
+    private void removeFocusStackEntryForClient(IBinder cb) {
         // is the owner of the audio focus part of the client to remove?
         boolean isTopOfStackForClientToRemove = !mFocusStack.isEmpty() &&
                 mFocusStack.peek().hasSameBinder(cb);
@@ -182,10 +181,9 @@ public class MediaFocusControl {
         while(stackIterator.hasNext()) {
             FocusRequester fr = stackIterator.next();
             if(fr.hasSameBinder(cb)) {
-                Log.i(TAG, "AudioFocus  removeFocusStackEntryOnDeath(): removing entry for " + cb);
+                Log.i(TAG, "AudioFocus  removeFocusStackEntry(): removing entry for " + cb);
                 stackIterator.remove();
-                // stack entry not used anymore, clear references
-                fr.release();
+                // the client just died, no need to unlink to its death
             }
         }
         if (isTopOfStackForClientToRemove) {
@@ -259,8 +257,13 @@ public class MediaFocusControl {
 
         public void binderDied() {
             synchronized(mAudioFocusLock) {
-                removeFocusStackEntryOnDeath(mCb);
+                Log.w(TAG, "  AudioFocus   audio focus client died");
+                removeFocusStackEntryForClient(mCb);
             }
+        }
+
+        public IBinder getBinder() {
+            return mCb;
         }
     }
 
@@ -417,7 +420,6 @@ public class MediaFocusControl {
             // (premature death == death before abandoning focus)
             // Register for client death notification
             AudioFocusDeathHandler afdh = new AudioFocusDeathHandler(cb);
-
             try {
                 cb.linkToDeath(afdh, 0);
             } catch (RemoteException e) {

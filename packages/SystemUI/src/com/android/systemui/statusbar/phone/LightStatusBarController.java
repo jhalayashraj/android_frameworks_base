@@ -27,7 +27,7 @@ import static com.android.systemui.statusbar.phone.BarTransitions.MODE_TRANSPARE
 /**
  * Controls how light status bar flag applies to the icons.
  */
-public class LightStatusBarController implements BatteryController.BatteryStateChangeCallback {
+public class LightStatusBarController {
 
     private final StatusBarIconController mIconController;
     private final BatteryController mBatteryController;
@@ -37,7 +37,6 @@ public class LightStatusBarController implements BatteryController.BatteryStateC
     private int mDockedStackVisibility;
     private boolean mFullscreenLight;
     private boolean mDockedLight;
-    private int mLastStatusBarMode;
 
     private final Rect mLastFullscreenBounds = new Rect();
     private final Rect mLastDockedBounds = new Rect();
@@ -46,7 +45,6 @@ public class LightStatusBarController implements BatteryController.BatteryStateC
             BatteryController batteryController) {
         mIconController = iconController;
         mBatteryController = batteryController;
-        batteryController.addStateChangedCallback(this);
     }
 
     public void setFingerprintUnlockController(
@@ -75,7 +73,6 @@ public class LightStatusBarController implements BatteryController.BatteryStateC
         }
         mFullscreenStackVisibility = newFullscreen;
         mDockedStackVisibility = newDocked;
-        mLastStatusBarMode = statusBarMode;
         mLastFullscreenBounds.set(fullscreenStackBounds);
         mLastDockedBounds.set(dockedStackBounds);
     }
@@ -125,17 +122,5 @@ public class LightStatusBarController implements BatteryController.BatteryStateC
             }
             mIconController.setIconsDark(true, animateChange());
         }
-    }
-
-    @Override
-    public void onBatteryLevelChanged(int level, boolean pluggedIn, boolean charging) {
-
-    }
-
-    @Override
-    public void onPowerSaveChanged(boolean isPowerSave) {
-        onSystemUiVisibilityChanged(mFullscreenStackVisibility, mDockedStackVisibility,
-                0 /* mask */, mLastFullscreenBounds, mLastDockedBounds, true /* sbModeChange*/,
-                mLastStatusBarMode);
     }
 }

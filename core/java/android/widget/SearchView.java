@@ -816,10 +816,8 @@ public class SearchView extends LinearLayout implements CollapsibleActionView {
 
         switch (heightMode) {
             case MeasureSpec.AT_MOST:
-                height = Math.min(getPreferredHeight(), height);
-                break;
             case MeasureSpec.UNSPECIFIED:
-                height = getPreferredHeight();
+                height = Math.min(getPreferredHeight(), height);
                 break;
         }
         heightMode = MeasureSpec.EXACTLY;

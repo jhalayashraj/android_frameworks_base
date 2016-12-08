@@ -18,9 +18,7 @@ package android.widget;
 
 import com.android.internal.R;
 
-import android.annotation.IntDef;
 import android.annotation.Nullable;
-import android.annotation.TestApi;
 import android.annotation.Widget;
 import android.content.Context;
 import android.content.res.Configuration;
@@ -34,8 +32,6 @@ import android.util.SparseArray;
 import android.view.View;
 import android.view.accessibility.AccessibilityEvent;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.util.Locale;
 
 /**
@@ -79,35 +75,10 @@ import java.util.Locale;
  */
 @Widget
 public class DatePicker extends FrameLayout {
-    /**
-     * Presentation mode for the Holo-style date picker that uses a set of
-     * {@link android.widget.NumberPicker}s.
-     *
-     * @see #getMode()
-     * @hide Visible for testing only.
-     */
-    @TestApi
-    public static final int MODE_SPINNER = 1;
-
-    /**
-     * Presentation mode for the Material-style date picker that uses a
-     * calendar.
-     *
-     * @see #getMode()
-     * @hide Visible for testing only.
-     */
-    @TestApi
-    public static final int MODE_CALENDAR = 2;
-
-    /** @hide */
-    @IntDef({MODE_SPINNER, MODE_CALENDAR})
-    @Retention(RetentionPolicy.SOURCE)
-    public @interface DatePickerMode {}
+    private static final int MODE_SPINNER = 1;
+    private static final int MODE_CALENDAR = 2;
 
     private final DatePickerDelegate mDelegate;
-
-    @DatePickerMode
-    private final int mMode;
 
     /**
      * The callback used to indicate the user changed the date.
@@ -143,20 +114,11 @@ public class DatePicker extends FrameLayout {
 
         final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.DatePicker,
                 defStyleAttr, defStyleRes);
-        final boolean isDialogMode = a.getBoolean(R.styleable.DatePicker_dialogMode, false);
-        final int requestedMode = a.getInt(R.styleable.DatePicker_datePickerMode, MODE_SPINNER);
+        final int mode = a.getInt(R.styleable.DatePicker_datePickerMode, MODE_SPINNER);
         final int firstDayOfWeek = a.getInt(R.styleable.DatePicker_firstDayOfWeek, 0);
         a.recycle();
 
-        if (requestedMode == MODE_CALENDAR && isDialogMode) {
-            // You want MODE_CALENDAR? YOU CAN'T HANDLE MODE_CALENDAR! Well,
-            // maybe you can depending on your screen size. Let's check...
-            mMode = context.getResources().getInteger(R.integer.date_picker_mode);
-        } else {
-            mMode = requestedMode;
-        }
-
-        switch (mMode) {
+        switch (mode) {
             case MODE_CALENDAR:
                 mDelegate = createCalendarUIDelegate(context, attrs, defStyleAttr, defStyleRes);
                 break;
@@ -180,18 +142,6 @@ public class DatePicker extends FrameLayout {
             int defStyleAttr, int defStyleRes) {
         return new DatePickerCalendarDelegate(this, context, attrs, defStyleAttr,
                 defStyleRes);
-    }
-
-    /**
-     * @return the picker's presentation mode, one of {@link #MODE_CALENDAR} or
-     *         {@link #MODE_SPINNER}
-     * @attr ref android.R.styleable#DatePicker_datePickerMode
-     * @hide Visible for testing only.
-     */
-    @DatePickerMode
-    @TestApi
-    public int getMode() {
-        return mMode;
     }
 
     /**

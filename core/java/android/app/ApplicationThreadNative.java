@@ -191,8 +191,7 @@ public abstract class ApplicationThreadNative extends Binder
             data.enforceInterface(IApplicationThread.descriptor);
             List<ReferrerIntent> pi = data.createTypedArrayList(ReferrerIntent.CREATOR);
             IBinder b = data.readStrongBinder();
-            final boolean andPause = data.readInt() == 1;
-            scheduleNewIntent(pi, b, andPause);
+            scheduleNewIntent(pi, b);
             return true;
         }
 
@@ -920,13 +919,12 @@ class ApplicationThreadProxy implements IApplicationThread {
         data.recycle();
     }
 
-    public void scheduleNewIntent(List<ReferrerIntent> intents, IBinder token, boolean andPause)
+    public void scheduleNewIntent(List<ReferrerIntent> intents, IBinder token)
             throws RemoteException {
         Parcel data = Parcel.obtain();
         data.writeInterfaceToken(IApplicationThread.descriptor);
         data.writeTypedList(intents);
         data.writeStrongBinder(token);
-        data.writeInt(andPause ? 1 : 0);
         mRemote.transact(SCHEDULE_NEW_INTENT_TRANSACTION, data, null,
                 IBinder.FLAG_ONEWAY);
         data.recycle();

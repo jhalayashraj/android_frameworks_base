@@ -873,7 +873,7 @@ class MtpDatabase {
     }
 
     private static int getRootFlags(int[] operationsSupported) {
-        int rootFlag = Root.FLAG_SUPPORTS_IS_CHILD | Root.FLAG_LOCAL_ONLY;
+        int rootFlag = Root.FLAG_SUPPORTS_IS_CHILD;
         if (MtpDeviceRecord.isWritingSupported(operationsSupported)) {
             rootFlag |= Root.FLAG_SUPPORTS_CREATE;
         }

@@ -144,7 +144,6 @@ private:
     sp<Looper> mLooper;
     sp<SpriteController> mSpriteController;
     sp<WeakMessageHandler> mHandler;
-    sp<LooperCallback> mCallback;
 
     DisplayEventReceiver mDisplayEventReceiver;
 

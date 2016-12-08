@@ -193,8 +193,6 @@ public class PopupWindow {
 
     private int mAnimationStyle = ANIMATION_STYLE_DEFAULT;
 
-    private int mGravity = Gravity.NO_GRAVITY;
-
     private static final int[] ABOVE_ANCHOR_STATE_SET = new int[] {
         com.android.internal.R.attr.state_above_anchor
     };
@@ -1143,10 +1141,14 @@ public class PopupWindow {
 
         mIsShowing = true;
         mIsDropdown = false;
-        mGravity = gravity;
 
         final WindowManager.LayoutParams p = createPopupLayoutParams(token);
         preparePopup(p);
+
+        // Only override the default if some gravity was specified.
+        if (gravity != Gravity.NO_GRAVITY) {
+            p.gravity = gravity;
+        }
 
         p.x = x;
         p.y = y;
@@ -1392,8 +1394,8 @@ public class PopupWindow {
     }
 
     private int computeGravity() {
-        int gravity = mGravity == Gravity.NO_GRAVITY ?  Gravity.START | Gravity.TOP : mGravity;
-        if (mIsDropdown && (mClipToScreen || mClippingEnabled)) {
+        int gravity = Gravity.START | Gravity.TOP;
+        if (mClipToScreen || mClippingEnabled) {
             gravity |= Gravity.DISPLAY_CLIP_VERTICAL;
         }
         return gravity;
@@ -1545,7 +1547,7 @@ public class PopupWindow {
         }
 
         // Let the window manager know to align the top to y.
-        outParams.gravity = computeGravity();
+        outParams.gravity = Gravity.LEFT | Gravity.TOP;
         outParams.width = width;
         outParams.height = height;
 
@@ -1758,22 +1760,11 @@ public class PopupWindow {
      */
     public int getMaxAvailableHeight(
             @NonNull View anchor, int yOffset, boolean ignoreBottomDecorations) {
-        Rect displayFrame = null;
-        final Rect visibleDisplayFrame = new Rect();
-
-        anchor.getWindowVisibleDisplayFrame(visibleDisplayFrame);
+        final Rect displayFrame = new Rect();
         if (ignoreBottomDecorations) {
-            // In the ignore bottom decorations case we want to
-            // still respect all other decorations so we use the inset visible
-            // frame on the top right and left and take the bottom
-            // value from the full frame.
-            displayFrame = new Rect();
             anchor.getWindowDisplayFrame(displayFrame);
-            displayFrame.top = visibleDisplayFrame.top;
-            displayFrame.right = visibleDisplayFrame.right;
-            displayFrame.left = visibleDisplayFrame.left;
         } else {
-            displayFrame = visibleDisplayFrame;
+            anchor.getWindowVisibleDisplayFrame(displayFrame);
         }
 
         final int[] anchorPos = mTmpDrawingLocation;

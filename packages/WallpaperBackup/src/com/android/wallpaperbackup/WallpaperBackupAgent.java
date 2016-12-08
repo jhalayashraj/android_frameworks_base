@@ -147,12 +147,11 @@ public class WallpaperBackupAgent extends BackupAgent {
             }
 
             // only back up the wallpapers if we've been told they're eligible
-            if (mWallpaperInfo.exists()) {
+            if ((sysEligible || lockEligible) && mWallpaperInfo.exists()) {
                 if (sysChanged || lockChanged || !infoStage.exists()) {
                     if (DEBUG) Slog.v(TAG, "New wallpaper configuration; copying");
                     FileUtils.copyFileOrThrow(mWallpaperInfo, infoStage);
                 }
-                if (DEBUG) Slog.v(TAG, "Storing wallpaper metadata");
                 fullBackupFile(infoStage, data);
             }
             if (sysEligible && mWallpaperFile.exists()) {
@@ -160,7 +159,6 @@ public class WallpaperBackupAgent extends BackupAgent {
                     if (DEBUG) Slog.v(TAG, "New system wallpaper; copying");
                     FileUtils.copyFileOrThrow(mWallpaperFile, imageStage);
                 }
-                if (DEBUG) Slog.v(TAG, "Storing system wallpaper image");
                 fullBackupFile(imageStage, data);
                 prefs.edit().putInt(SYSTEM_GENERATION, sysGeneration).apply();
             }
@@ -171,7 +169,6 @@ public class WallpaperBackupAgent extends BackupAgent {
                     if (DEBUG) Slog.v(TAG, "New lock wallpaper; copying");
                     FileUtils.copyFileOrThrow(mLockWallpaperFile, lockImageStage);
                 }
-                if (DEBUG) Slog.v(TAG, "Storing lock wallpaper image");
                 fullBackupFile(lockImageStage, data);
                 prefs.edit().putInt(LOCK_GENERATION, lockGeneration).apply();
             }

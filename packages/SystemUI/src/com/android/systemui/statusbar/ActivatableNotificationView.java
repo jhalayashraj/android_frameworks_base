@@ -593,9 +593,6 @@ public abstract class ActivatableNotificationView extends ExpandableOutlineView 
             public void onAnimationEnd(Animator animation) {
                 updateBackground();
                 mBackgroundAnimator = null;
-                if (mFadeInFromDarkAnimator == null) {
-                    mDimmedBackgroundFadeInAmount = -1;
-                }
             }
         });
         mBackgroundAnimator.addUpdateListener(mBackgroundVisibilityUpdater);

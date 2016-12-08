@@ -330,7 +330,7 @@ public class UsbManager {
             ParcelFileDescriptor pfd = mService.openDevice(deviceName);
             if (pfd != null) {
                 UsbDeviceConnection connection = new UsbDeviceConnection(device);
-                boolean result = connection.open(deviceName, pfd, mContext);
+                boolean result = connection.open(deviceName, pfd);
                 pfd.close();
                 if (result) {
                     return connection;

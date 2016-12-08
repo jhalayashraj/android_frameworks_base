@@ -19,7 +19,6 @@ package android.security.net.config;
 import android.os.Environment;
 import android.os.UserHandle;
 import android.util.ArraySet;
-import android.util.Log;
 import android.util.Pair;
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -45,7 +44,6 @@ import javax.security.auth.x500.X500Principal;
  * @hide
  */
 abstract class DirectoryCertificateSource implements CertificateSource {
-    private static final String LOG_TAG = "DirectoryCertificateSrc";
     private final File mDir;
     private final Object mLock = new Object();
     private final CertificateFactory mCertFactory;
@@ -151,9 +149,6 @@ abstract class DirectoryCertificateSource implements CertificateSource {
                 continue;
             }
             X509Certificate cert = readCertificate(fileName);
-            if (cert == null) {
-                continue;
-            }
             if (!subj.equals(cert.getSubjectX500Principal())) {
                 continue;
             }
@@ -178,9 +173,6 @@ abstract class DirectoryCertificateSource implements CertificateSource {
                 continue;
             }
             X509Certificate cert = readCertificate(fileName);
-            if (cert == null) {
-                continue;
-            }
             if (!subj.equals(cert.getSubjectX500Principal())) {
                 continue;
             }
@@ -202,7 +194,6 @@ abstract class DirectoryCertificateSource implements CertificateSource {
             is = new BufferedInputStream(new FileInputStream(new File(mDir, file)));
             return (X509Certificate) mCertFactory.generateCertificate(is);
         } catch (CertificateException | IOException e) {
-            Log.e(LOG_TAG, "Failed to read certificate from " + file, e);
             return null;
         } finally {
             IoUtils.closeQuietly(is);

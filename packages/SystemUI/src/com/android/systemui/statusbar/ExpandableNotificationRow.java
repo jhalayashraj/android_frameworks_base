@@ -507,7 +507,7 @@ public class ExpandableNotificationRow extends ActivatableNotificationView {
         int intrinsicHeight = getIntrinsicHeight();
         mIsPinned = pinned;
         if (intrinsicHeight != getIntrinsicHeight()) {
-            notifyHeightChanged(false /* needsAnimation */);
+            notifyHeightChanged(false);
         }
         if (pinned) {
             setIconAnimationRunning(true);
@@ -840,6 +840,8 @@ public class ExpandableNotificationRow extends ActivatableNotificationView {
     }
 
     public void resetHeight() {
+        mMaxExpandHeight = 0;
+        mHeadsUpHeight = 0;
         onHeightReset();
         requestLayout();
     }
@@ -905,9 +907,6 @@ public class ExpandableNotificationRow extends ActivatableNotificationView {
     }
 
     public void resetTranslation() {
-        if (mTranslateAnim != null) {
-            mTranslateAnim.cancel();
-        }
         if (mTranslateableViews != null) {
             for (int i = 0; i < mTranslateableViews.size(); i++) {
                 mTranslateableViews.get(i).setTranslationX(0);
@@ -1292,7 +1291,7 @@ public class ExpandableNotificationRow extends ActivatableNotificationView {
         }
         mHeadsUpHeight = headsUpChild.getHeight();
         if (intrinsicBefore != getIntrinsicHeight()) {
-            notifyHeightChanged(true  /* needsAnimation */);
+            notifyHeightChanged(false  /* needsAnimation */);
         }
     }
 
@@ -1400,7 +1399,7 @@ public class ExpandableNotificationRow extends ActivatableNotificationView {
         if (isChildInGroup()) {
             mGroupManager.setGroupExpanded(mStatusBarNotification, true);
         }
-        notifyHeightChanged(false /* needsAnimation */);
+        notifyHeightChanged(false);
     }
 
     public void setChildrenExpanded(boolean expanded, boolean animate) {

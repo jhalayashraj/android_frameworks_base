@@ -269,8 +269,7 @@ public class LayerDrawable extends Drawable implements Drawable.Callback {
 
             // If the layer doesn't have a drawable or unresolved theme
             // attribute for a drawable, attempt to parse one from the child
-            // element. If multiple child elements exist, we'll only use the
-            // first one.
+            // element.
             if (layer.mDrawable == null && (layer.mThemeAttrs == null ||
                     layer.mThemeAttrs[R.styleable.LayerDrawableItem_drawable] == 0)) {
                 while ((type = parser.next()) == XmlPullParser.TEXT) {
@@ -280,12 +279,13 @@ public class LayerDrawable extends Drawable implements Drawable.Callback {
                             + ": <item> tag requires a 'drawable' attribute or "
                             + "child tag defining a drawable");
                 }
-
-                // We found a child drawable. Take ownership.
                 layer.mDrawable = Drawable.createFromXmlInner(r, parser, attrs, theme);
-                layer.mDrawable.setCallback(this);
+            }
+
+            if (layer.mDrawable != null) {
                 state.mChildrenChangingConfigurations |=
                         layer.mDrawable.getChangingConfigurations();
+                layer.mDrawable.setCallback(this);
             }
 
             addLayer(layer);
@@ -387,19 +387,7 @@ public class LayerDrawable extends Drawable implements Drawable.Callback {
 
         final Drawable dr = a.getDrawable(R.styleable.LayerDrawableItem_drawable);
         if (dr != null) {
-            if (layer.mDrawable != null) {
-                // It's possible that a drawable was already set, in which case
-                // we should clear the callback. We may have also integrated the
-                // drawable's changing configurations, but we don't have enough
-                // information to revert that change.
-                layer.mDrawable.setCallback(null);
-            }
-
-            // Take ownership of the new drawable.
             layer.mDrawable = dr;
-            layer.mDrawable.setCallback(this);
-            state.mChildrenChangingConfigurations |=
-                    layer.mDrawable.getChangingConfigurations();
         }
     }
 

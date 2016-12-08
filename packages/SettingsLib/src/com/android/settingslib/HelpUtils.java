@@ -34,8 +34,6 @@ import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MenuItem.OnMenuItemClickListener;
-import com.android.internal.logging.MetricsLogger;
-import com.android.internal.logging.MetricsProto.MetricsEvent;
 
 import java.net.URISyntaxException;
 import java.util.Locale;
@@ -114,9 +112,6 @@ public class HelpUtils {
                 helpMenuItem.setOnMenuItemClickListener(new OnMenuItemClickListener() {
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
-                        MetricsLogger.action(activity,
-                            MetricsEvent.ACTION_SETTING_HELP_AND_FEEDBACK,
-                            intent.getStringExtra(EXTRA_CONTEXT));
                         try {
                             activity.startActivityForResult(intent, 0);
                         } catch (ActivityNotFoundException exc) {

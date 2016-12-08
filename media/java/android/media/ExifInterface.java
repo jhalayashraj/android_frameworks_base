@@ -1554,16 +1554,14 @@ public class ExifInterface {
      * copying all the data from one file to another and deleting the old file and renaming the
      * other. It's best to use {@link #setAttribute(String,String)} to set all attributes to write
      * and make a single call rather than multiple calls for each attribute.
-     * <p>
-     * This method is only supported for JPEG files.
-     * </p>
      */
     public void saveAttributes() throws IOException {
         if (!mIsSupportedFile || mIsRaw) {
-            throw new IOException("ExifInterface only supports saving attributes on JPEG formats.");
+            throw new UnsupportedOperationException(
+                    "ExifInterface only supports saving attributes on JPEG formats.");
         }
         if (mIsInputStream || (mSeekableFileDescriptor == null && mFilename == null)) {
-            throw new IOException(
+            throw new UnsupportedOperationException(
                     "ExifInterface does not support saving attributes for the current input.");
         }
 

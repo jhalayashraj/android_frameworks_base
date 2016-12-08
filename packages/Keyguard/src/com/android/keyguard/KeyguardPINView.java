@@ -16,9 +16,13 @@
 
 package com.android.keyguard;
 
+import android.animation.Animator;
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.provider.Settings;
 import android.util.AttributeSet;
+import android.view.RenderNode;
+import android.view.RenderNodeAnimator;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
@@ -194,10 +198,9 @@ public class KeyguardPINView extends KeyguardPinBasedInputView {
         setTranslationY(0);
         AppearAnimationUtils.startTranslationYAnimation(this, 0 /* delay */, 280 /* duration */,
                 mDisappearYTranslation, mDisappearAnimationUtils.getInterpolator());
-        DisappearAnimationUtils disappearAnimationUtils = mKeyguardUpdateMonitor
-                .needsSlowUnlockTransition()
-                        ? mDisappearAnimationUtilsLocked
-                        : mDisappearAnimationUtils;
+        DisappearAnimationUtils disappearAnimationUtils = mKeyguardUpdateMonitor.isUserUnlocked()
+                ? mDisappearAnimationUtils
+                : mDisappearAnimationUtilsLocked;
         disappearAnimationUtils.startAnimation2d(mViews,
                 new Runnable() {
                     @Override

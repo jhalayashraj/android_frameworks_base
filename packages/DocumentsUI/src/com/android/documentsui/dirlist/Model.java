@@ -107,13 +107,7 @@ public class Model {
         mSortOrder = result.sortOrder;
         doc = result.doc;
 
-        try {
-            updateModelData();
-        } catch (Exception e) {
-            Log.e(TAG, "Error while accessing cursors", e);
-            notifyUpdateListeners(e);
-            return;
-        }
+        updateModelData();
 
         final Bundle extras = mCursor.getExtras();
         if (extras != null) {

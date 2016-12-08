@@ -113,12 +113,7 @@ public class NanoAppInstanceInfo {
     }
 
     /**
-     * Get the application version
-     *
-     * NOTE: There is a race condition where shortly after loading, this
-     * may return -1 instead of the correct version.
-     *
-     * TODO(b/30970527): Fix this race condition.
+     * Set the application version
      *
      * @return int - version of the app
      */

@@ -138,7 +138,7 @@ public class SyncStorageEngine extends Handler {
     private static final boolean SYNC_ENABLED_DEFAULT = false;
 
     // the version of the accounts xml file format
-    private static final int ACCOUNTS_VERSION = 3;
+    private static final int ACCOUNTS_VERSION = 2;
 
     private static HashMap<String, String> sAuthorityRenames;
     private static PeriodicSyncAddedListener mPeriodicSyncAddedListener;
@@ -212,12 +212,6 @@ public class SyncStorageEngine extends Handler {
 
     public static class AuthorityInfo {
         // Legal values of getIsSyncable
-
-        /**
-         * The syncable state is undefined.
-         */
-        public static final int UNDEFINED = -2;
-
         /**
          * Default state for a newly installed adapter. An uninitialized adapter will receive an
          * initialization sync which are governed by a different set of rules to that of regular
@@ -240,12 +234,6 @@ public class SyncStorageEngine extends Handler {
          * external use.
          */
         public static final int SYNCABLE_NOT_INITIALIZED = 2;
-
-        /**
-         * The adapter is syncable but does not have access to the synced account and needs a
-         * user access approval.
-         */
-        public static final int SYNCABLE_NO_ACCOUNT_ACCESS = 3;
 
         final EndPoint target;
         final int ident;
@@ -414,8 +402,6 @@ public class SyncStorageEngine extends Handler {
 
     private OnSyncRequestListener mSyncRequestListener;
     private OnAuthorityRemovedListener mAuthorityRemovedListener;
-
-    private boolean mGrantSyncAdaptersAccountAccess;
 
     private SyncStorageEngine(Context context, File dataDir) {
         mContext = context;
@@ -1425,10 +1411,6 @@ public class SyncStorageEngine extends Handler {
         }
     }
 
-    public boolean shouldGrantSyncAdaptersAccountAccess() {
-        return mGrantSyncAdaptersAccountAccess;
-    }
-
     /**
      * public for testing
      */
@@ -1483,11 +1465,6 @@ public class SyncStorageEngine extends Handler {
                 } catch (NumberFormatException e) {
                     version = 0;
                 }
-
-                if (version < 3) {
-                    mGrantSyncAdaptersAccountAccess = true;
-                }
-
                 String nextIdString = parser.getAttributeValue(null, XML_ATTR_NEXT_AUTHORITY_ID);
                 try {
                     int id = (nextIdString == null) ? 0 : Integer.parseInt(nextIdString);

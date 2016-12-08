@@ -35,8 +35,6 @@ import android.system.StructStat;
 import android.util.ArraySet;
 import android.util.Log;
 
-import libcore.io.IoUtils;
-
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
@@ -652,11 +650,10 @@ public abstract class BackupAgent extends ContextWrapper {
                 File file = scanQueue.remove(0);
                 String filePath;
                 try {
-                    // Ignore things that aren't "real" files or dirs
+                    // Ignore symlinks outright
                     StructStat stat = Os.lstat(file.getPath());
-                    if (!OsConstants.S_ISREG(stat.st_mode)
-                            && !OsConstants.S_ISDIR(stat.st_mode)) {
-                        if (DEBUG) Log.i(TAG, "Not a file/dir (skipping)!: " + file);
+                    if (OsConstants.S_ISLNK(stat.st_mode)) {
+                        if (DEBUG) Log.i(TAG, "Symlink (skipping)!: " + file);
                         continue;
                     }
 
@@ -927,13 +924,6 @@ public abstract class BackupAgent extends ContextWrapper {
                 } catch (RemoteException e) {
                     // we'll time out anyway, so we're safe
                 }
-
-                // Don't close the fd out from under the system service if this was local
-                if (Binder.getCallingPid() != Process.myPid()) {
-                    IoUtils.closeQuietly(oldState);
-                    IoUtils.closeQuietly(data);
-                    IoUtils.closeQuietly(newState);
-                }
             }
         }
 
@@ -963,11 +953,6 @@ public abstract class BackupAgent extends ContextWrapper {
                     callbackBinder.opComplete(token, 0);
                 } catch (RemoteException e) {
                     // we'll time out anyway, so we're safe
-                }
-
-                if (Binder.getCallingPid() != Process.myPid()) {
-                    IoUtils.closeQuietly(data);
-                    IoUtils.closeQuietly(newState);
                 }
             }
         }
@@ -1011,10 +996,6 @@ public abstract class BackupAgent extends ContextWrapper {
                     callbackBinder.opComplete(token, 0);
                 } catch (RemoteException e) {
                     // we'll time out anyway, so we're safe
-                }
-
-                if (Binder.getCallingPid() != Process.myPid()) {
-                    IoUtils.closeQuietly(data);
                 }
             }
         }
@@ -1062,10 +1043,6 @@ public abstract class BackupAgent extends ContextWrapper {
                     callbackBinder.opComplete(token, 0);
                 } catch (RemoteException e) {
                     // we'll time out anyway, so we're safe
-                }
-
-                if (Binder.getCallingPid() != Process.myPid()) {
-                    IoUtils.closeQuietly(data);
                 }
             }
         }

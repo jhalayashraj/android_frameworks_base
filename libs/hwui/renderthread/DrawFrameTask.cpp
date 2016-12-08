@@ -104,9 +104,6 @@ void DrawFrameTask::run() {
 
     if (CC_LIKELY(canDrawThisFrame)) {
         context->draw();
-    } else {
-        // wait on fences so tasks don't overlap next frame
-        context->waitOnFences();
     }
 
     if (!canUnblockUiThread) {

@@ -116,7 +116,8 @@ public class ViewTransformationHelper implements TransformableView {
                     ownState.transformViewTo(otherState, transformationAmount);
                     otherState.recycle();
                 } else {
-                    ownState.disappear(transformationAmount, notification);
+                    // there's no other view available
+                    CrossFadeHelper.fadeOut(mTransformedViews.get(viewType), transformationAmount);
                 }
                 ownState.recycle();
             }
@@ -173,7 +174,13 @@ public class ViewTransformationHelper implements TransformableView {
                     ownState.transformViewFrom(otherState, transformationAmount);
                     otherState.recycle();
                 } else {
-                    ownState.appear(transformationAmount, notification);
+                    // There's no other view, lets fade us in
+                    // Certain views need to prepare the fade in and make sure its children are
+                    // completely visible. An example is the notification header.
+                    if (transformationAmount == 0.0f) {
+                        ownState.prepareFadeIn();
+                    }
+                    CrossFadeHelper.fadeIn(mTransformedViews.get(viewType), transformationAmount);
                 }
                 ownState.recycle();
             }

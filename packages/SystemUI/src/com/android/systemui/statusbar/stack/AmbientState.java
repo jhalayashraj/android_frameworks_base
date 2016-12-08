@@ -43,7 +43,6 @@ public class AmbientState {
     private boolean mShadeExpanded;
     private float mMaxHeadsUpTranslation;
     private boolean mDismissAllInProgress;
-    private int mLayoutMinHeight;
 
     public int getScrollY() {
         return mScrollY;
@@ -138,6 +137,10 @@ public class AmbientState {
         mStackTranslation = stackTranslation;
     }
 
+    public int getLayoutHeight() {
+        return mLayoutHeight;
+    }
+
     public void setLayoutHeight(int layoutHeight) {
         mLayoutHeight = layoutHeight;
     }
@@ -151,7 +154,7 @@ public class AmbientState {
     }
 
     public int getInnerHeight() {
-        return Math.max(mLayoutHeight - mTopPadding, mLayoutMinHeight);
+        return mLayoutHeight - mTopPadding;
     }
 
     public boolean isShadeExpanded() {
@@ -176,9 +179,5 @@ public class AmbientState {
 
     public boolean isDismissAllInProgress() {
         return mDismissAllInProgress;
-    }
-
-    public void setLayoutMinHeight(int layoutMinHeight) {
-        mLayoutMinHeight = layoutMinHeight;
     }
 }

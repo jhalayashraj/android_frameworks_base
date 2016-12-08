@@ -4,31 +4,31 @@ page.title=Gingerbread
 
 
 <style type="text/css">
-#body-content {
+#jd-content {
   max-width:1200px;
 }
-#body-content div.screenshot {
+#jd-content div.screenshot {
   float:left;
   clear:left;
   padding:15px 30px 15px 0;
 }
-#body-content div.video {
+#jd-content div.video {
   float:right;
   padding:0 0 0 40px;
 }
-#body-content table.columns {
+#jd-content table.columns {
   margin:0 0 1em 0;
 }
-#body-content table.columns td {
+#jd-content table.columns td {
   padding:0;
 }
-#body-content table.columns td+td {
+#jd-content table.columns td+td {
   padding:0 2em;
 }
-#body-content table.columns td img {
+#jd-content table.columns td img {
   margin:0;
 }
-#body-content table.columns td+td>*:first-child {
+#jd-content table.columns td+td>*:first-child {
   margin-top:-2em;
 }
 .green {

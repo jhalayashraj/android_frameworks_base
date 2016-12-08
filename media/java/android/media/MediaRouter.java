@@ -220,7 +220,8 @@ public class MediaRouter {
 
             if (mBluetoothA2dpRoute != null) {
                 final boolean a2dpEnabled = isBluetoothA2dpOn();
-                if (mSelectedRoute == mBluetoothA2dpRoute && !a2dpEnabled) {
+                if (mainType != AudioRoutesInfo.MAIN_SPEAKER &&
+                        mSelectedRoute == mBluetoothA2dpRoute && !a2dpEnabled) {
                     selectRouteStatic(ROUTE_TYPE_LIVE_AUDIO, mDefaultAudioVideo, false);
                 } else if ((mSelectedRoute == mDefaultAudioVideo || mSelectedRoute == null) &&
                         a2dpEnabled) {

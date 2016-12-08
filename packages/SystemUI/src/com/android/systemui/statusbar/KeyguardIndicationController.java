@@ -96,7 +96,7 @@ public class KeyguardIndicationController {
                 ServiceManager.getService(BatteryStats.SERVICE_NAME));
 
         KeyguardUpdateMonitor.getInstance(context).registerCallback(mUpdateMonitor);
-        context.registerReceiverAsUser(mTickReceiver, UserHandle.SYSTEM,
+        context.registerReceiverAsUser(mReceiver, UserHandle.SYSTEM,
                 new IntentFilter(Intent.ACTION_TIME_TICK), null, null);
     }
 
@@ -336,16 +336,9 @@ public class KeyguardIndicationController {
             super.onFingerprintAuthFailed();
             mLastSuccessiveErrorMessage = -1;
         }
-
-        @Override
-        public void onUserUnlocked() {
-            if (mVisible) {
-                updateIndication();
-            }
-        }
     };
 
-    BroadcastReceiver mTickReceiver = new BroadcastReceiver() {
+    BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (mVisible) {
@@ -353,7 +346,6 @@ public class KeyguardIndicationController {
             }
         }
     };
-
 
     private final Handler mHandler = new Handler() {
         @Override

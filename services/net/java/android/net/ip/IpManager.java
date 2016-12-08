@@ -46,7 +46,6 @@ import android.util.SparseArray;
 
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.util.IndentingPrintWriter;
-import com.android.internal.util.IState;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
 import com.android.server.net.NetlinkTracker;
@@ -359,7 +358,6 @@ public class IpManager extends StateMachine {
     }
 
     public static final String DUMP_ARG = "ipmanager";
-    public static final String DUMP_ARG_CONFIRM = "confirm";
 
     private static final int CMD_STOP = 1;
     private static final int CMD_START = 2;
@@ -385,7 +383,6 @@ public class IpManager extends StateMachine {
     private final State mStoppedState = new StoppedState();
     private final State mStoppingState = new StoppingState();
     private final State mStartedState = new StartedState();
-    private final State mRunningState = new RunningState();
 
     private final String mTag;
     private final Context mContext;
@@ -399,7 +396,6 @@ public class IpManager extends StateMachine {
     private final WakeupMessage mDhcpActionTimeoutAlarm;
     private final AvoidBadWifiTracker mAvoidBadWifiTracker;
     private final LocalLog mLocalLog;
-    private final MessageHandlingLogger mMsgStateLogger;
     private final IpConnectivityLog mMetricsLog = new IpConnectivityLog();
 
     private NetworkInterface mNetworkInterface;
@@ -484,12 +480,10 @@ public class IpManager extends StateMachine {
         // Super simple StateMachine.
         addState(mStoppedState);
         addState(mStartedState);
-            addState(mRunningState, mStartedState);
         addState(mStoppingState);
 
         setInitialState(mStoppedState);
         mLocalLog = new LocalLog(MAX_LOG_RECORDS);
-        mMsgStateLogger = new MessageHandlingLogger();
         super.start();
     }
 
@@ -567,12 +561,6 @@ public class IpManager extends StateMachine {
     }
 
     public void dump(FileDescriptor fd, PrintWriter writer, String[] args) {
-        if (args.length > 0 && DUMP_ARG_CONFIRM.equals(args[0])) {
-            // Execute confirmConfiguration() and take no further action.
-            confirmConfiguration();
-            return;
-        }
-
         IndentingPrintWriter pw = new IndentingPrintWriter(writer, "  ");
         pw.println("APF dump:");
         pw.increaseIndent();
@@ -586,7 +574,7 @@ public class IpManager extends StateMachine {
         pw.decreaseIndent();
 
         pw.println();
-        pw.println(mTag + " StateMachine dump:");
+        pw.println("StateMachine dump:");
         pw.increaseIndent();
         mLocalLog.readOnlyLocalLog().dump(fd, pw, args);
         pw.decreaseIndent();
@@ -605,9 +593,9 @@ public class IpManager extends StateMachine {
     @Override
     protected String getLogRecString(Message msg) {
         final String logLine = String.format(
-                "%s/%d %d %d %s [%s]",
+                "%s/%d %d %d %s",
                 mInterfaceName, mNetworkInterface == null ? -1 : mNetworkInterface.getIndex(),
-                msg.arg1, msg.arg2, Objects.toString(msg.obj), mMsgStateLogger);
+                msg.arg1, msg.arg2, Objects.toString(msg.obj));
 
         final String richerLogLine = getWhatToString(msg.what) + " " + logLine;
         mLocalLog.log(richerLogLine);
@@ -615,7 +603,6 @@ public class IpManager extends StateMachine {
             Log.d(mTag, richerLogLine);
         }
 
-        mMsgStateLogger.reset();
         return logLine;
     }
 
@@ -624,11 +611,7 @@ public class IpManager extends StateMachine {
         // Don't log EVENT_NETLINK_LINKPROPERTIES_CHANGED. They can be noisy,
         // and we already log any LinkProperties change that results in an
         // invocation of IpManager.Callback#onLinkPropertiesChange().
-        final boolean shouldLog = (msg.what != EVENT_NETLINK_LINKPROPERTIES_CHANGED);
-        if (!shouldLog) {
-            mMsgStateLogger.reset();
-        }
-        return shouldLog;
+        return (msg.what != EVENT_NETLINK_LINKPROPERTIES_CHANGED);
     }
 
     private void getNetworkInterface() {
@@ -806,11 +789,6 @@ public class IpManager extends StateMachine {
         //         - IPv6 addresses
         //         - IPv6 routes
         //         - IPv6 DNS servers
-        //
-        // N.B.: this is fundamentally race-prone and should be fixed by
-        // changing NetlinkTracker from a hybrid edge/level model to an
-        // edge-only model, or by giving IpManager its own netlink socket(s)
-        // so as to track all required information directly.
         LinkProperties netlinkLinkProperties = mNetlinkTracker.getLinkProperties();
         newLp.setLinkAddresses(netlinkLinkProperties.getLinkAddresses());
         for (RouteInfo route : netlinkLinkProperties.getRoutes()) {
@@ -982,29 +960,16 @@ public class IpManager extends StateMachine {
         return true;
     }
 
-    private void stopAllIP() {
-        // We don't need to worry about routes, just addresses, because:
-        //     - disableIpv6() will clear autoconf IPv6 routes as well, and
-        //     - we don't get IPv4 routes from netlink
-        // so we neither react to nor need to wait for changes in either.
-
-        try {
-            mNwService.disableIpv6(mInterfaceName);
-        } catch (Exception e) {
-            Log.e(mTag, "Failed to disable IPv6" + e);
-        }
-
-        try {
-            mNwService.clearInterfaceAddresses(mInterfaceName);
-        } catch (Exception e) {
-            Log.e(mTag, "Failed to clear addresses " + e);
-        }
-    }
 
     class StoppedState extends State {
         @Override
         public void enter() {
-            stopAllIP();
+            try {
+                mNwService.disableIpv6(mInterfaceName);
+                mNwService.clearInterfaceAddresses(mInterfaceName);
+            } catch (Exception e) {
+                Log.e(mTag, "Failed to clear addresses or disable IPv6" + e);
+            }
 
             resetLinkProperties();
             if (mStartTimeMillis > 0) {
@@ -1050,8 +1015,6 @@ public class IpManager extends StateMachine {
                 default:
                     return NOT_HANDLED;
             }
-
-            mMsgStateLogger.handled(this, getCurrentState());
             return HANDLED;
         }
     }
@@ -1068,13 +1031,6 @@ public class IpManager extends StateMachine {
         @Override
         public boolean processMessage(Message msg) {
             switch (msg.what) {
-                case CMD_STOP:
-                    break;
-
-                case DhcpClient.CMD_CLEAR_LINKADDRESS:
-                    clearIPv4Address();
-                    break;
-
                 case DhcpClient.CMD_ON_QUIT:
                     mDhcpClient = null;
                     transitionTo(mStoppedState);
@@ -1083,86 +1039,29 @@ public class IpManager extends StateMachine {
                 default:
                     deferMessage(msg);
             }
-
-            mMsgStateLogger.handled(this, getCurrentState());
             return HANDLED;
         }
     }
 
     class StartedState extends State {
-        @Override
-        public void enter() {
-            mStartTimeMillis = SystemClock.elapsedRealtime();
-
-            if (mConfiguration.mProvisioningTimeoutMs > 0) {
-                final long alarmTime = SystemClock.elapsedRealtime() +
-                        mConfiguration.mProvisioningTimeoutMs;
-                mProvisioningTimeoutAlarm.schedule(alarmTime);
-            }
-
-            if (readyToProceed()) {
-                transitionTo(mRunningState);
-            } else {
-                // Clear all IPv4 and IPv6 before proceeding to RunningState.
-                // Clean up any leftover state from an abnormal exit from
-                // tethering or during an IpManager restart.
-                stopAllIP();
-            }
-        }
-
-        @Override
-        public void exit() {
-            mProvisioningTimeoutAlarm.cancel();
-        }
-
-        @Override
-        public boolean processMessage(Message msg) {
-            switch (msg.what) {
-                case CMD_STOP:
-                    transitionTo(mStoppingState);
-                    break;
-
-                case EVENT_NETLINK_LINKPROPERTIES_CHANGED:
-                    handleLinkPropertiesUpdate(NO_CALLBACKS);
-                    if (readyToProceed()) {
-                        transitionTo(mRunningState);
-                    }
-                    break;
-
-                case EVENT_PROVISIONING_TIMEOUT:
-                    handleProvisioningFailure();
-                    break;
-
-                default:
-                    // It's safe to process messages out of order because the
-                    // only message that can both
-                    //     a) be received at this time and
-                    //     b) affect provisioning state
-                    // is EVENT_NETLINK_LINKPROPERTIES_CHANGED (handled above).
-                    deferMessage(msg);
-            }
-
-            mMsgStateLogger.handled(this, getCurrentState());
-            return HANDLED;
-        }
-
-        boolean readyToProceed() {
-            return (!mLinkProperties.hasIPv4Address() &&
-                    !mLinkProperties.hasGlobalIPv6Address());
-        }
-    }
-
-    class RunningState extends State {
         private boolean mDhcpActionInFlight;
 
         @Override
         public void enter() {
+            mStartTimeMillis = SystemClock.elapsedRealtime();
+
             mApfFilter = ApfFilter.maybeCreate(mConfiguration.mApfCapabilities, mNetworkInterface,
                     mCallback, mMulticastFiltering);
             // TODO: investigate the effects of any multicast filtering racing/interfering with the
             // rest of this IP configuration startup.
             if (mApfFilter == null) {
                 mCallback.setFallbackMulticastFilter(mMulticastFiltering);
+            }
+
+            if (mConfiguration.mProvisioningTimeoutMs > 0) {
+                final long alarmTime = SystemClock.elapsedRealtime() +
+                        mConfiguration.mProvisioningTimeoutMs;
+                mProvisioningTimeoutAlarm.schedule(alarmTime);
             }
 
             if (mConfiguration.mEnableIPv6) {
@@ -1193,6 +1092,7 @@ public class IpManager extends StateMachine {
 
         @Override
         public void exit() {
+            mProvisioningTimeoutAlarm.cancel();
             stopDhcpAction();
 
             if (mIpReachabilityMonitor != null) {
@@ -1289,6 +1189,10 @@ public class IpManager extends StateMachine {
                     break;
                 }
 
+                case EVENT_PROVISIONING_TIMEOUT:
+                    handleProvisioningFailure();
+                    break;
+
                 case EVENT_DHCPACTION_TIMEOUT:
                     stopDhcpAction();
                     break;
@@ -1351,29 +1255,7 @@ public class IpManager extends StateMachine {
                 default:
                     return NOT_HANDLED;
             }
-
-            mMsgStateLogger.handled(this, getCurrentState());
             return HANDLED;
-        }
-    }
-
-    private static class MessageHandlingLogger {
-        public String processedInState;
-        public String receivedInState;
-
-        public void reset() {
-            processedInState = null;
-            receivedInState = null;
-        }
-
-        public void handled(State processedIn, IState receivedIn) {
-            processedInState = processedIn.getClass().getSimpleName();
-            receivedInState = receivedIn.getName();
-        }
-
-        public String toString() {
-            return String.format("rcvd_in=%s, proc_in=%s",
-                                 receivedInState, processedInState);
         }
     }
 }

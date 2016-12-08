@@ -207,6 +207,7 @@ public final class ClientOperation implements Operation, BaseStream {
      *         object
      */
     public synchronized int getResponseCode() throws IOException {
+        //avoid dup validateConnection
         if ((mReplyHeader.responseCode == -1)
                 || (mReplyHeader.responseCode == ResponseCodes.OBEX_HTTP_CONTINUE)) {
             validateConnection();
@@ -422,9 +423,8 @@ public final class ClientOperation implements Operation, BaseStream {
     private void validateConnection() throws IOException {
         ensureOpen();
 
-        // Make sure that a response has been recieved from remote
-        // before continuing
-        if (mPrivateInput == null || mReplyHeader.responseCode == -1) {
+        // to sure only one privateInput object exist.
+        if (mPrivateInput == null) {
             startProcessing();
         }
     }

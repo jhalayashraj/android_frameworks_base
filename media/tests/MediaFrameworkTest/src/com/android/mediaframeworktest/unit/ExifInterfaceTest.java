@@ -416,7 +416,7 @@ public class ExifInterfaceTest extends AndroidTestCase {
             in = getContext().getAssets().open(imageFile.getName());
             ExifInterface exifInterface = new ExifInterface(in);
             exifInterface.saveAttributes();
-        } catch (IOException e) {
+        } catch (UnsupportedOperationException e) {
             // Expected. saveAttributes is not supported with an ExifInterface object which was
             // created with InputStream.
             return;

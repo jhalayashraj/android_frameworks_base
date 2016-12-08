@@ -1371,7 +1371,6 @@ public final class SQLiteDatabase extends SQLiteClosable {
 
     /**
      * Convenience method for replacing a row in the database.
-     * Inserts a new row if a row does not already exist.
      *
      * @param table the table in which to replace the row
      * @param nullColumnHack optional; may be <code>null</code>.
@@ -1382,7 +1381,7 @@ public final class SQLiteDatabase extends SQLiteClosable {
      *            provides the name of nullable column name to explicitly insert a NULL into
      *            in the case where your <code>initialValues</code> is empty.
      * @param initialValues this map contains the initial column values for
-     *   the row. The keys should be the column names and the values the column values.
+     *   the row.
      * @return the row ID of the newly inserted row, or -1 if an error occurred
      */
     public long replace(String table, String nullColumnHack, ContentValues initialValues) {
@@ -1397,7 +1396,6 @@ public final class SQLiteDatabase extends SQLiteClosable {
 
     /**
      * Convenience method for replacing a row in the database.
-     * Inserts a new row if a row does not already exist.
      *
      * @param table the table in which to replace the row
      * @param nullColumnHack optional; may be <code>null</code>.
@@ -1408,7 +1406,7 @@ public final class SQLiteDatabase extends SQLiteClosable {
      *            provides the name of nullable column name to explicitly insert a NULL into
      *            in the case where your <code>initialValues</code> is empty.
      * @param initialValues this map contains the initial column values for
-     *   the row. The keys should be the column names and the values the column values.
+     *   the row. The key
      * @throws SQLException
      * @return the row ID of the newly inserted row, or -1 if an error occurred
      */
@@ -1742,7 +1740,7 @@ public final class SQLiteDatabase extends SQLiteClosable {
      * Returns true if the new version code is greater than the current database version.
      *
      * @param newVersion The new version code.
-     * @return True if the new version code is greater than the current database version.
+     * @return True if the new version code is greater than the current database version. 
      */
     public boolean needUpgrade(int newVersion) {
         return newVersion > getVersion();

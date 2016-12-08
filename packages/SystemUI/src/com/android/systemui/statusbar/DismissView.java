@@ -56,8 +56,6 @@ public class DismissView extends StackScrollerDecorView {
     protected void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         mDismissButton.setText(R.string.clear_all_notifications_text);
-        mDismissButton.setContentDescription(
-                mContext.getString(R.string.accessibility_clear_all));
     }
 
     public boolean isButtonVisible() {

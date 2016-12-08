@@ -381,7 +381,7 @@ public class HeadsUpManager implements ViewTreeObserver.OnComputeInternalInsetsL
     }
 
     public void onComputeInternalInsets(ViewTreeObserver.InternalInsetsInfo info) {
-        if (mIsExpanded || mBar.isBouncerShowing()) {
+        if (mIsExpanded) {
             // The touchable region is always the full area when expanded
             return;
         }

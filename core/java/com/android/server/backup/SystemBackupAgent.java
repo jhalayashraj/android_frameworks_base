@@ -49,7 +49,6 @@ public class SystemBackupAgent extends BackupAgentHelper {
     private static final String PERMISSION_HELPER = "permissions";
     private static final String USAGE_STATS_HELPER = "usage_stats";
     private static final String SHORTCUT_MANAGER_HELPER = "shortcut_manager";
-    private static final String ACCOUNT_MANAGER_HELPER = "account_manager";
 
     // These paths must match what the WallpaperManagerService uses.  The leaf *_FILENAME
     // are also used in the full-backup file format, so must not change unless steps are
@@ -83,7 +82,6 @@ public class SystemBackupAgent extends BackupAgentHelper {
         addHelper(PERMISSION_HELPER, new PermissionBackupHelper());
         addHelper(USAGE_STATS_HELPER, new UsageStatsBackupHelper(this));
         addHelper(SHORTCUT_MANAGER_HELPER, new ShortcutBackupHelper());
-        addHelper(ACCOUNT_MANAGER_HELPER, new AccountManagerBackupHelper());
         super.onBackup(oldState, data, newState);
     }
 
@@ -113,7 +111,6 @@ public class SystemBackupAgent extends BackupAgentHelper {
         addHelper(PERMISSION_HELPER, new PermissionBackupHelper());
         addHelper(USAGE_STATS_HELPER, new UsageStatsBackupHelper(this));
         addHelper(SHORTCUT_MANAGER_HELPER, new ShortcutBackupHelper());
-        addHelper(ACCOUNT_MANAGER_HELPER, new AccountManagerBackupHelper());
 
         try {
             super.onRestore(data, appVersionCode, newState);

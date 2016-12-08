@@ -235,10 +235,6 @@ public class DocumentInfo implements Durable, Parcelable {
         return (flags & Document.FLAG_DIR_PREFERS_GRID) != 0;
     }
 
-    public boolean isWriteSupported() {
-        return (flags & Document.FLAG_SUPPORTS_WRITE) != 0;
-    }
-
     public boolean isDeleteSupported() {
         return (flags & Document.FLAG_SUPPORTS_DELETE) != 0;
     }

@@ -50,8 +50,6 @@ import com.android.systemui.R;
 import com.android.systemui.statusbar.stack.StackStateAnimator;
 import com.android.systemui.tuner.TunerService;
 
-import java.util.Set;
-
 import static android.service.notification.NotificationListenerService.Ranking.importanceToLevel;
 import static android.service.notification.NotificationListenerService.Ranking.levelToImportance;
 
@@ -178,7 +176,7 @@ public class NotificationGuts extends LinearLayout implements TunerService.Tunab
     }
 
     void bindImportance(final PackageManager pm, final StatusBarNotification sbn,
-            final Set<String> nonBlockablePkgs, final int importance) {
+            final int importance) {
         mINotificationManager = INotificationManager.Stub.asInterface(
                 ServiceManager.getService(Context.NOTIFICATION_SERVICE));
         mStartingUserImportance = NotificationListenerService.Ranking.IMPORTANCE_UNSPECIFIED;
@@ -187,38 +185,26 @@ public class NotificationGuts extends LinearLayout implements TunerService.Tunab
                     mINotificationManager.getImportance(sbn.getPackageName(), sbn.getUid());
         } catch (RemoteException e) {}
         mNotificationImportance = importance;
+        boolean systemApp = false;
+        try {
+            final PackageInfo info =
+                    pm.getPackageInfo(sbn.getPackageName(), PackageManager.GET_SIGNATURES);
+            systemApp = Utils.isSystemPackage(getResources(), pm, info);
+        } catch (PackageManager.NameNotFoundException e) {
+            // unlikely.
+        }
 
         final View importanceSlider = findViewById(R.id.importance_slider);
         final View importanceButtons = findViewById(R.id.importance_buttons);
-        final View cantTouchThis = findViewById(R.id.cant_silence_or_block);
-
-        final boolean essentialPackage =
-                (nonBlockablePkgs != null && nonBlockablePkgs.contains(sbn.getPackageName()));
-        if (essentialPackage) {
+        if (mShowSlider) {
+            bindSlider(importanceSlider, systemApp);
+            importanceSlider.setVisibility(View.VISIBLE);
             importanceButtons.setVisibility(View.GONE);
-            importanceSlider.setVisibility(View.GONE);
-            cantTouchThis.setVisibility(View.VISIBLE);
         } else {
-            cantTouchThis.setVisibility(View.GONE);
 
-            boolean nonBlockable = false;
-            try {
-                final PackageInfo info =
-                        pm.getPackageInfo(sbn.getPackageName(), PackageManager.GET_SIGNATURES);
-                nonBlockable = Utils.isSystemPackage(getResources(), pm, info);
-            } catch (PackageManager.NameNotFoundException e) {
-                // unlikely.
-            }
-
-            if (mShowSlider) {
-                bindSlider(importanceSlider, nonBlockable);
-                importanceSlider.setVisibility(View.VISIBLE);
-                importanceButtons.setVisibility(View.GONE);
-            } else {
-                bindToggles(importanceButtons, mStartingUserImportance, nonBlockable);
-                importanceButtons.setVisibility(View.VISIBLE);
-                importanceSlider.setVisibility(View.GONE);
-            }
+            bindToggles(importanceButtons, mStartingUserImportance, systemApp);
+            importanceButtons.setVisibility(View.VISIBLE);
+            importanceSlider.setVisibility(View.GONE);
         }
     }
 
@@ -256,7 +242,7 @@ public class NotificationGuts extends LinearLayout implements TunerService.Tunab
     }
 
     private void bindToggles(final View importanceButtons, final int importance,
-            final boolean nonBlockable) {
+            final boolean systemApp) {
         ((RadioGroup) importanceButtons).setOnCheckedChangeListener(
                 new RadioGroup.OnCheckedChangeListener() {
                     @Override
@@ -267,7 +253,7 @@ public class NotificationGuts extends LinearLayout implements TunerService.Tunab
         mBlock = (RadioButton) importanceButtons.findViewById(R.id.block_importance);
         mSilent = (RadioButton) importanceButtons.findViewById(R.id.silent_importance);
         mReset = (RadioButton) importanceButtons.findViewById(R.id.reset_importance);
-        if (nonBlockable) {
+        if (systemApp) {
             mBlock.setVisibility(View.GONE);
             mReset.setText(mContext.getString(R.string.do_not_silence));
         } else {
@@ -282,7 +268,7 @@ public class NotificationGuts extends LinearLayout implements TunerService.Tunab
         }
     }
 
-    private void bindSlider(final View importanceSlider, final boolean nonBlockable) {
+    private void bindSlider(final View importanceSlider, final boolean systemApp) {
         mActiveSliderTint = ColorStateList.valueOf(Utils.getColorAccent(mContext));
         mInactiveSliderTint = loadColorStateList(R.color.notification_guts_disabled_slider_color);
 
@@ -290,7 +276,7 @@ public class NotificationGuts extends LinearLayout implements TunerService.Tunab
         mImportanceTitle = ((TextView) importanceSlider.findViewById(R.id.title));
         mSeekBar = (SeekBar) importanceSlider.findViewById(R.id.seekbar);
 
-        final int minProgress = nonBlockable ?
+        final int minProgress = systemApp ?
                 NotificationListenerService.Ranking.IMPORTANCE_MIN
                 : NotificationListenerService.Ranking.IMPORTANCE_NONE;
         mSeekBar.setMax(importanceToLevel(Ranking.IMPORTANCE_MAX));

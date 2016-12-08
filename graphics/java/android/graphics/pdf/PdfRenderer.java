@@ -99,12 +99,6 @@ import java.lang.annotation.RetentionPolicy;
  * @see #close()
  */
 public final class PdfRenderer implements AutoCloseable {
-    /**
-     * Any call the native pdfium code has to be single threaded as the library does not support
-     * parallel use.
-     */
-    final static Object sPdfiumLock = new Object();
-
     private final CloseGuard mCloseGuard = CloseGuard.get();
 
     private final Point mTempPoint = new Point();
@@ -160,12 +154,8 @@ public final class PdfRenderer implements AutoCloseable {
         }
 
         mInput = input;
-
-        synchronized (sPdfiumLock) {
-            mNativeDocument = nativeCreate(mInput.getFd(), size);
-            mPageCount = nativeGetPageCount(mNativeDocument);
-        }
-
+        mNativeDocument = nativeCreate(mInput.getFd(), size);
+        mPageCount = nativeGetPageCount(mNativeDocument);
         mCloseGuard.open("close");
     }
 
@@ -199,10 +189,7 @@ public final class PdfRenderer implements AutoCloseable {
      */
     public boolean shouldScaleForPrinting() {
         throwIfClosed();
-
-        synchronized (sPdfiumLock) {
-            return nativeScaleForPrinting(mNativeDocument);
-        }
+        return nativeScaleForPrinting(mNativeDocument);
     }
 
     /**
@@ -237,9 +224,7 @@ public final class PdfRenderer implements AutoCloseable {
         if (mCurrentPage != null) {
             mCurrentPage.close();
         }
-        synchronized (sPdfiumLock) {
-            nativeClose(mNativeDocument);
-        }
+        nativeClose(mNativeDocument);
         try {
             mInput.close();
         } catch (IOException ioe) {
@@ -292,9 +277,7 @@ public final class PdfRenderer implements AutoCloseable {
 
         private Page(int index) {
             Point size = mTempPoint;
-            synchronized (sPdfiumLock) {
-                mNativePage = nativeOpenPageAndGetSize(mNativeDocument, index, size);
-            }
+            mNativePage = nativeOpenPageAndGetSize(mNativeDocument, index, size);
             mIndex = index;
             mWidth = size.x;
             mHeight = size.y;
@@ -401,10 +384,8 @@ public final class PdfRenderer implements AutoCloseable {
 
             final long transformPtr = (transform != null) ? transform.native_instance : 0;
 
-            synchronized (sPdfiumLock) {
-                nativeRenderPage(mNativeDocument, mNativePage, destination, contentLeft,
-                        contentTop, contentRight, contentBottom, transformPtr, renderMode);
-            }
+            nativeRenderPage(mNativeDocument, mNativePage, destination, contentLeft,
+                    contentTop, contentRight, contentBottom, transformPtr, renderMode);
         }
 
         /**
@@ -431,9 +412,7 @@ public final class PdfRenderer implements AutoCloseable {
         }
 
         private void doClose() {
-            synchronized (sPdfiumLock) {
-                nativeClosePage(mNativePage);
-            }
+            nativeClosePage(mNativePage);
             mNativePage = 0;
             mCloseGuard.close();
             mCurrentPage = null;

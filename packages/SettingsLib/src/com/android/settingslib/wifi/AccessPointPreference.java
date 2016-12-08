@@ -29,6 +29,7 @@ import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.SparseArray;
 import android.widget.TextView;
+
 import com.android.settingslib.R;
 
 public class AccessPointPreference extends Preference {
@@ -43,14 +44,13 @@ public class AccessPointPreference extends Preference {
     private final StateListDrawable mWifiSld;
     private final int mBadgePadding;
     private final UserBadgeCache mBadgeCache;
-    private TextView mTitleView;
 
+    private TextView mTitleView;
     private boolean mForSavedNetworks = false;
     private AccessPoint mAccessPoint;
     private Drawable mBadge;
     private int mLevel;
     private CharSequence mContentDescription;
-    private int mDefaultIconResId;
 
     static final int[] WIFI_CONNECTION_STRENGTH = {
             R.string.accessibility_wifi_one_bar,
@@ -85,24 +85,6 @@ public class AccessPointPreference extends Preference {
         refresh();
     }
 
-    public AccessPointPreference(AccessPoint accessPoint, Context context, UserBadgeCache cache,
-            int iconResId, boolean forSavedNetworks) {
-        super(context);
-        mBadgeCache = cache;
-        mAccessPoint = accessPoint;
-        mForSavedNetworks = forSavedNetworks;
-        mAccessPoint.setTag(this);
-        mLevel = -1;
-        mDefaultIconResId = iconResId;
-
-        mWifiSld = (StateListDrawable) context.getTheme()
-                .obtainStyledAttributes(wifi_signal_attributes).getDrawable(0);
-
-        // Distance from the end of the title at which this AP's user badge should sit.
-        mBadgePadding = context.getResources()
-                .getDimensionPixelSize(R.dimen.wifi_preference_badge_padding);
-    }
-
     public AccessPoint getAccessPoint() {
         return mAccessPoint;
     }
@@ -130,7 +112,7 @@ public class AccessPointPreference extends Preference {
 
     protected void updateIcon(int level, Context context) {
         if (level == -1) {
-            safeSetDefaultIcon();
+            setIcon(null);
         } else {
             if (getIcon() == null) {
                 // To avoid a drawing race condition, we first set the state (SECURE/NONE) and then
@@ -142,21 +124,13 @@ public class AccessPointPreference extends Preference {
                             ? STATE_SECURED
                             : STATE_NONE);
                     Drawable drawable = mWifiSld.getCurrent();
-                    if (!mForSavedNetworks && drawable != null) {
+                    if (!mForSavedNetworks) {
                         setIcon(drawable);
-                        return;
+                    } else {
+                        setIcon(null);
                     }
                 }
-                safeSetDefaultIcon();
             }
-        }
-    }
-
-    private void safeSetDefaultIcon() {
-        if (mDefaultIconResId != 0) {
-            setIcon(mDefaultIconResId);
-        } else {
-            setIcon(null);
         }
     }
 

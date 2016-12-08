@@ -652,8 +652,7 @@ public final class ActivityManagerService extends ActivityManagerNative
     boolean mDoingSetFocusedActivity;
 
     public boolean canShowErrorDialogs() {
-        return mShowDialogs && !mSleeping && !mShuttingDown
-                && mLockScreenShown != LOCK_SCREEN_SHOWN;
+        return mShowDialogs && !mSleeping && !mShuttingDown;
     }
 
     private static final class PriorityState {
@@ -1170,7 +1169,6 @@ public final class ActivityManagerService extends ActivityManagerNative
      * For example, references to the commonly used services.
      */
     HashMap<String, IBinder> mAppBindArgs;
-    HashMap<String, IBinder> mIsolatedAppBindArgs;
 
     /**
      * Temporary to avoid allocations.  Protected by main lock.
@@ -2554,21 +2552,22 @@ public final class ActivityManagerService extends ActivityManagerNative
                 if (memInfo != null) {
                     updateCpuStatsNow();
                     long nativeTotalPss = 0;
-                    final List<ProcessCpuTracker.Stats> stats;
                     synchronized (mProcessCpuTracker) {
-                        stats = mProcessCpuTracker.getStats( (st)-> {
-                            return st.vsize > 0 && st.uid < Process.FIRST_APPLICATION_UID;
-                        });
-                    }
-                    final int N = stats.size();
-                    for (int j = 0; j < N; j++) {
-                        synchronized (mPidsSelfLocked) {
-                            if (mPidsSelfLocked.indexOfKey(stats.get(j).pid) >= 0) {
-                                // This is one of our own processes; skip it.
+                        final int N = mProcessCpuTracker.countStats();
+                        for (int j=0; j<N; j++) {
+                            ProcessCpuTracker.Stats st = mProcessCpuTracker.getStats(j);
+                            if (st.vsize <= 0 || st.uid >= Process.FIRST_APPLICATION_UID) {
+                                // This is definitely an application process; skip it.
                                 continue;
                             }
+                            synchronized (mPidsSelfLocked) {
+                                if (mPidsSelfLocked.indexOfKey(st.pid) >= 0) {
+                                    // This is one of our own processes; skip it.
+                                    continue;
+                                }
+                            }
+                            nativeTotalPss += Debug.getPss(st.pid, null, null);
                         }
-                        nativeTotalPss += Debug.getPss(stats.get(j).pid, null, null);
                     }
                     memInfo.readMemInfo();
                     synchronized (ActivityManagerService.this) {
@@ -3111,24 +3110,18 @@ public final class ActivityManagerService extends ActivityManagerNative
      * lazily setup to make sure the services are running when they're asked for.
      */
     private HashMap<String, IBinder> getCommonServicesLocked(boolean isolated) {
-        // Isolated processes won't get this optimization, so that we don't
-        // violate the rules about which services they have access to.
-        if (isolated) {
-            if (mIsolatedAppBindArgs == null) {
-                mIsolatedAppBindArgs = new HashMap<>();
-                mIsolatedAppBindArgs.put("package", ServiceManager.getService("package"));
-            }
-            return mIsolatedAppBindArgs;
-        }
-
         if (mAppBindArgs == null) {
             mAppBindArgs = new HashMap<>();
 
-            // Setup the application init args
-            mAppBindArgs.put("package", ServiceManager.getService("package"));
-            mAppBindArgs.put("window", ServiceManager.getService("window"));
-            mAppBindArgs.put(Context.ALARM_SERVICE,
-                    ServiceManager.getService(Context.ALARM_SERVICE));
+            // Isolated processes won't get this optimization, so that we don't
+            // violate the rules about which services they have access to.
+            if (!isolated) {
+                // Setup the application init args
+                mAppBindArgs.put("package", ServiceManager.getService("package"));
+                mAppBindArgs.put("window", ServiceManager.getService("window"));
+                mAppBindArgs.put(Context.ALARM_SERVICE,
+                        ServiceManager.getService(Context.ALARM_SERVICE));
+            }
         }
         return mAppBindArgs;
     }
@@ -14035,7 +14028,7 @@ public final class ActivityManagerService extends ActivityManagerNative
                     try {
                         java.lang.Process logcat = new ProcessBuilder(
                                 "/system/bin/timeout", "-k", "15s", "10s",
-                                "/system/bin/logcat", "-v", "threadtime", "-b", "events", "-b", "system",
+                                "/system/bin/logcat", "-v", "time", "-b", "events", "-b", "system",
                                 "-b", "main", "-b", "crash", "-t", String.valueOf(lines))
                                         .redirectErrorStream(true).start();
 
@@ -16725,24 +16718,21 @@ public final class ActivityManagerService extends ActivityManagerNative
         }
         updateCpuStatsNow();
         long[] memtrackTmp = new long[1];
-        final List<ProcessCpuTracker.Stats> stats;
-        // Get a list of Stats that have vsize > 0
         synchronized (mProcessCpuTracker) {
-            stats = mProcessCpuTracker.getStats((st) -> {
-                return st.vsize > 0;
-            });
-        }
-        final int statsCount = stats.size();
-        for (int i = 0; i < statsCount; i++) {
-            ProcessCpuTracker.Stats st = stats.get(i);
-            long pss = Debug.getPss(st.pid, null, memtrackTmp);
-            if (pss > 0) {
-                if (infoMap.indexOfKey(st.pid) < 0) {
-                    ProcessMemInfo mi = new ProcessMemInfo(st.name, st.pid,
-                            ProcessList.NATIVE_ADJ, -1, "native", null);
-                    mi.pss = pss;
-                    mi.memtrack = memtrackTmp[0];
-                    memInfos.add(mi);
+            final int N = mProcessCpuTracker.countStats();
+            for (int i=0; i<N; i++) {
+                ProcessCpuTracker.Stats st = mProcessCpuTracker.getStats(i);
+                if (st.vsize > 0) {
+                    long pss = Debug.getPss(st.pid, null, memtrackTmp);
+                    if (pss > 0) {
+                        if (infoMap.indexOfKey(st.pid) < 0) {
+                            ProcessMemInfo mi = new ProcessMemInfo(st.name, st.pid,
+                                    ProcessList.NATIVE_ADJ, -1, "native", null);
+                            mi.pss = pss;
+                            mi.memtrack = memtrackTmp[0];
+                            memInfos.add(mi);
+                        }
+                    }
                 }
             }
         }
@@ -17996,7 +17986,6 @@ public final class ActivityManagerService extends ActivityManagerNative
                 || Intent.ACTION_MEDIA_BUTTON.equals(action)
                 || Intent.ACTION_MEDIA_SCANNER_SCAN_FILE.equals(action)
                 || Intent.ACTION_SHOW_KEYBOARD_SHORTCUTS.equals(action)
-                || Intent.ACTION_MASTER_CLEAR.equals(action)
                 || AppWidgetManager.ACTION_APPWIDGET_CONFIGURE.equals(action)
                 || AppWidgetManager.ACTION_APPWIDGET_UPDATE.equals(action)
                 || LocationManager.HIGH_POWER_REQUEST_CHANGE_ACTION.equals(action)
@@ -19255,7 +19244,7 @@ public final class ActivityManagerService extends ActivityManagerNative
                 if ((changes&ActivityInfo.CONFIG_LOCALE) != 0) {
                     intent = new Intent(Intent.ACTION_LOCALE_CHANGED);
                     intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
-	            if (initLocale || !mProcessesReady) {
+                    if (!mProcessesReady) {
                         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
                     }
                     broadcastIntentLocked(null, null, intent,
@@ -20959,11 +20948,8 @@ public final class ActivityManagerService extends ActivityManagerNative
             final long now = SystemClock.elapsedRealtime();
             Long lastReported = userState.mProviderLastReportedFg.get(authority);
             if (lastReported == null || lastReported < now - 60 * 1000L) {
-                if (mSystemReady) {
-                    // Cannot touch the user stats if not system ready
-                    mUsageStatsService.reportContentProviderUsage(
-                            authority, providerPkgName, app.userId);
-                }
+                mUsageStatsService.reportContentProviderUsage(
+                        authority, providerPkgName, app.userId);
                 userState.mProviderLastReportedFg.put(authority, now);
             }
         }
@@ -20993,10 +20979,8 @@ public final class ActivityManagerService extends ActivityManagerNative
                 isInteraction = nowElapsed > app.fgInteractionTime + SERVICE_USAGE_INTERACTION_TIME;
             }
         } else {
-            // If the app was being forced to the foreground, by say a Toast, then
-            // no need to treat it as an interaction
-            isInteraction = app.forcingToForeground == null
-                    && app.curProcState <= ActivityManager.PROCESS_STATE_IMPORTANT_FOREGROUND;
+            isInteraction = app.curProcState
+                    <= ActivityManager.PROCESS_STATE_IMPORTANT_FOREGROUND;
             app.fgInteractionTime = 0;
         }
         if (isInteraction && (!app.reportedInteraction
@@ -22534,23 +22518,5 @@ public final class ActivityManagerService extends ActivityManagerNative
         } finally {
             Binder.restoreCallingIdentity(callingId);
         }
-    }
-
-    @Override
-    public boolean canBypassWorkChallenge(PendingIntent intent) throws RemoteException {
-        final int userId = intent.getCreatorUserHandle().getIdentifier();
-        if (!mUserController.isUserRunningLocked(userId, ActivityManager.FLAG_AND_LOCKED)) {
-            return false;
-        }
-        IIntentSender target = intent.getTarget();
-        if (!(target instanceof PendingIntentRecord)) {
-            return false;
-        }
-        final PendingIntentRecord record = (PendingIntentRecord) target;
-        final ResolveInfo rInfo = mStackSupervisor.resolveIntent(record.key.requestIntent,
-                record.key.requestResolvedType, userId, PackageManager.MATCH_DIRECT_BOOT_AWARE);
-        // For direct boot aware activities, they can be shown without triggering a work challenge
-        // before the profile user is unlocked.
-        return rInfo != null && rInfo.activityInfo != null;
     }
 }

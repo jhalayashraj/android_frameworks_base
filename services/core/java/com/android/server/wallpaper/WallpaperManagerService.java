@@ -89,7 +89,6 @@ import com.android.internal.os.BackgroundThread;
 import com.android.internal.util.FastXmlSerializer;
 import com.android.internal.util.JournaledFile;
 import com.android.server.EventLogTags;
-import com.android.server.FgThread;
 import com.android.server.SystemService;
 
 import libcore.io.IoUtils;
@@ -481,7 +480,6 @@ public class WallpaperManagerService extends IWallpaperManager.Stub {
     WallpaperData mLastWallpaper;
     IWallpaperManagerCallback mKeyguardListener;
     boolean mWaitingForUnlock;
-    boolean mShuttingDown;
 
     /**
      * ID of the current wallpaper, changed every time anything sets a wallpaper.
@@ -592,11 +590,6 @@ public class WallpaperManagerService extends IWallpaperManager.Stub {
 
     class WallpaperConnection extends IWallpaperConnection.Stub
             implements ServiceConnection {
-
-        /** Time in milliseconds until we expect the wallpaper to reconnect (unless we're in the
-         *  middle of an update). If exceeded, the wallpaper gets reset to the system default. */
-        private static final long WALLPAPER_RECONNECT_TIMEOUT_MS = 5000;
-
         final WallpaperInfo mInfo;
         final Binder mToken = new Binder();
         IWallpaperService mService;
@@ -606,26 +599,6 @@ public class WallpaperManagerService extends IWallpaperManager.Stub {
 
         boolean mDimensionsChanged = false;
         boolean mPaddingChanged = false;
-
-        private Runnable mResetRunnable = () -> {
-            synchronized (mLock) {
-                if (mShuttingDown) {
-                    // Don't expect wallpaper services to relaunch during shutdown
-                    if (DEBUG) {
-                        Slog.i(TAG, "Ignoring relaunch timeout during shutdown");
-                    }
-                    return;
-                }
-
-                if (!mWallpaper.wallpaperUpdating
-                        && mWallpaper.userId == mCurrentUserId) {
-                    Slog.w(TAG, "Wallpaper reconnect timed out, "
-                            + "reverting to built-in wallpaper!");
-                    clearWallpaperLocked(true, FLAG_SYSTEM, mWallpaper.userId,
-                            null);
-                }
-            }
-        };
 
         public WallpaperConnection(WallpaperInfo info, WallpaperData wallpaper) {
             mInfo = info;
@@ -643,7 +616,6 @@ public class WallpaperManagerService extends IWallpaperManager.Stub {
                     // locking there and anyway we always need to be able to
                     // recover if there is something wrong.
                     saveSettingsLocked(mWallpaper.userId);
-                    FgThread.getHandler().removeCallbacks(mResetRunnable);
                 }
             }
         }
@@ -670,12 +642,6 @@ public class WallpaperManagerService extends IWallpaperManager.Stub {
                             clearWallpaperLocked(true, FLAG_SYSTEM, mWallpaper.userId, null);
                         } else {
                             mWallpaper.lastDiedTime = SystemClock.uptimeMillis();
-
-                            // If we didn't reset it right away, do so after we couldn't connect to
-                            // it for an extended amount of time to avoid having a black wallpaper.
-                            FgThread.getHandler().removeCallbacks(mResetRunnable);
-                            FgThread.getHandler().postDelayed(mResetRunnable,
-                                    WALLPAPER_RECONNECT_TIMEOUT_MS);
                         }
                         final String flattened = name.flattenToString();
                         EventLog.writeEvent(EventLogTags.WP_WALLPAPER_CRASHED,
@@ -787,10 +753,6 @@ public class WallpaperManagerService extends IWallpaperManager.Stub {
                     if (wallpaper.wallpaperComponent != null
                             && wallpaper.wallpaperComponent.getPackageName().equals(packageName)) {
                         wallpaper.wallpaperUpdating = true;
-                        if (wallpaper.connection != null) {
-                            FgThread.getHandler().removeCallbacks(
-                                    wallpaper.connection.mResetRunnable);
-                        }
                     }
                 }
             }
@@ -877,7 +839,6 @@ public class WallpaperManagerService extends IWallpaperManager.Stub {
     public WallpaperManagerService(Context context) {
         if (DEBUG) Slog.v(TAG, "WallpaperService startup");
         mContext = context;
-        mShuttingDown = false;
         mImageWallpaper = ComponentName.unflattenFromString(
                 context.getResources().getString(R.string.image_wallpaper_component));
         mIWindowManager = IWindowManager.Stub.asInterface(
@@ -941,21 +902,6 @@ public class WallpaperManagerService extends IWallpaperManager.Stub {
                 }
             }
         }, userFilter);
-
-        final IntentFilter shutdownFilter = new IntentFilter(Intent.ACTION_SHUTDOWN);
-        mContext.registerReceiver(new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                if (Intent.ACTION_SHUTDOWN.equals(intent.getAction())) {
-                    if (DEBUG) {
-                        Slog.i(TAG, "Shutting down");
-                    }
-                    synchronized (mLock) {
-                        mShuttingDown = true;
-                    }
-                }
-            }
-        }, shutdownFilter);
 
         try {
             ActivityManagerNative.getDefault().registerUserSwitchObserver(
@@ -1488,7 +1434,7 @@ public class WallpaperManagerService extends IWallpaperManager.Stub {
         lockWP.cropHint.set(sysWP.cropHint);
         lockWP.width = sysWP.width;
         lockWP.height = sysWP.height;
-        lockWP.allowBackup = sysWP.allowBackup;
+        lockWP.allowBackup = false;
 
         // Migrate the bitmap files outright; no need to copy
         try {

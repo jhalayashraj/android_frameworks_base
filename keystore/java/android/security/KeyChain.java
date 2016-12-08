@@ -20,7 +20,6 @@ import android.annotation.Nullable;
 import android.annotation.WorkerThread;
 import android.app.Activity;
 import android.app.PendingIntent;
-import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -357,9 +356,6 @@ public final class KeyChain {
      *
      * <p> This method may block while waiting for a connection to another process, and must never
      * be called from the main thread.
-     * <p> As {@link Activity} and {@link Service} contexts are short-lived and can be destroyed
-     * at any time from the main thread, it is safer to rely on a long-lived context such as one
-     * returned from {@link Context#getApplicationContext()}.
      *
      * @param alias The alias of the desired private key, typically returned via
      *              {@link KeyChainAliasCallback#alias}.
@@ -372,7 +368,7 @@ public final class KeyChain {
         if (alias == null) {
             throw new NullPointerException("alias == null");
         }
-        KeyChainConnection keyChainConnection = bind(context.getApplicationContext());
+        KeyChainConnection keyChainConnection = bind(context);
         try {
             final IKeyChainService keyChainService = keyChainConnection.getService();
             final String keyId = keyChainService.requestPrivateKey(alias);
@@ -404,9 +400,6 @@ public final class KeyChain {
      *
      * <p> This method may block while waiting for a connection to another process, and must never
      * be called from the main thread.
-     * <p> As {@link Activity} and {@link Service} contexts are short-lived and can be destroyed
-     * at any time from the main thread, it is safer to rely on a long-lived context such as one
-     * returned from {@link Context#getApplicationContext()}.
      *
      * @param alias The alias of the desired certificate chain, typically
      * returned via {@link KeyChainAliasCallback#alias}.
@@ -419,7 +412,7 @@ public final class KeyChain {
         if (alias == null) {
             throw new NullPointerException("alias == null");
         }
-        KeyChainConnection keyChainConnection = bind(context.getApplicationContext());
+        KeyChainConnection keyChainConnection = bind(context);
         try {
             IKeyChainService keyChainService = keyChainConnection.getService();
 

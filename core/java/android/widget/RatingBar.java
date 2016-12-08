@@ -281,8 +281,10 @@ public class RatingBar extends AbsSeekBar {
     protected synchronized void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
-        if (mSampleWidth > 0) {
-            final int width = mSampleWidth * mNumStars;
+        if (mSampleTile != null) {
+            // TODO: Once ProgressBar's TODOs are gone, this can be done more
+            // cleanly than mSampleTile
+            final int width = mSampleTile.getWidth() * mNumStars;
             setMeasuredDimension(resolveSizeAndState(width, widthMeasureSpec, 0),
                     getMeasuredHeight());
         }
