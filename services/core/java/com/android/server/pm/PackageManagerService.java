@@ -7316,6 +7316,7 @@ public class PackageManagerService extends IPackageManager.Stub {
                                             R.string.android_upgrading_fstrim), true);
                         } catch (RemoteException e) {
                         }
+		    }
                     ms.runMaintenance();
                 }
             } else {
