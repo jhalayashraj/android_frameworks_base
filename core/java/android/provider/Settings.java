@@ -3755,6 +3755,12 @@ public final class Settings {
           */
          public static final String LOCKSCREEN_CHARGING_CURRENT = "lockscreen_charging_current";
 
+	/**
+          * Whether to show the battery info on the lockscreen while charging
+          * @hide
+          */
+         public static final String LOCKSCREEN_BATTERY_INFO = "lockscreen_battery_info";
+
        /**
          * Network traffic indicator, goes from least to greatest significant bitwise
          * 0 = Display up-stream traffic if set
