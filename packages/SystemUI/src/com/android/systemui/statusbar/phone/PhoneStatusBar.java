@@ -434,6 +434,8 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
 
     boolean mExpandedVisible;
 
+    private boolean mShow4G;
+
     private int mNavigationBarWindowState = WINDOW_STATE_SHOWING;
 
     private int mStatusBarHeaderHeight;
@@ -552,6 +554,9 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
             resolver.registerContentObserver(Settings.System.getUriFor(
                  Settings.System.BLUR_MIXED_COLOR_PREFERENCE_KEY), 
                  false, this);
+	    resolver.registerContentObserver(Settings.System.getUriFor(
+                 Settings.System.SHOW_FOURG),
+                 false, this, UserHandle.USER_ALL);
             update();
         }
 
@@ -566,6 +571,13 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
 	public void onChange(boolean selfChange, Uri uri) {
         ContentResolver resolver = mContext.getContentResolver();
 		if (uri.equals(Settings.System.getUriFor(
+                    Settings.System.SHOW_FOURG))) {
+                    mShow4G = Settings.System.getIntForUser(
+                            mContext.getContentResolver(),
+                            Settings.System.SHOW_FOURG,
+                            0, UserHandle.USER_CURRENT) == 1;
+                    mNetworkController.onConfigurationChanged();
+	    } else if (uri.equals(Settings.System.getUriFor(
                     Settings.System.RECENT_APPS_ENABLED_PREFERENCE_KEY))) {
                     mBlurredRecents = Settings.System.getIntForUser(
                                         mContext.getContentResolver(),
@@ -574,6 +586,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
                     RecentsActivity.startBlurTask();
                     updatePreferences(mContext);
 		}
+		update();
             }
 
         @Override
@@ -587,6 +600,9 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
             mBrightnessControl = CMSettings.System.getIntForUser(
                     resolver, CMSettings.System.STATUS_BAR_BRIGHTNESS_CONTROL, 0,
                     UserHandle.USER_CURRENT) == 1;
+
+	    boolean mShow4G = Settings.System.getIntForUser(resolver,
+                    Settings.System.SHOW_FOURG, 0, UserHandle.USER_CURRENT) == 1;
 
             if (mNavigationBarView != null) {
                 boolean navLeftInLandscape = CMSettings.System.getIntForUser(resolver,

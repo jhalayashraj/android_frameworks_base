@@ -3755,6 +3755,12 @@ public final class Settings {
           */
          public static final String LOCKSCREEN_CHARGING_CURRENT = "lockscreen_charging_current";
 
+	/**
+          * Whether to show the battery info on the lockscreen while charging
+          * @hide
+          */
+         public static final String LOCKSCREEN_BATTERY_INFO = "lockscreen_battery_info";
+
        /**
          * Network traffic indicator, goes from least to greatest significant bitwise
          * 0 = Display up-stream traffic if set
@@ -3776,6 +3782,13 @@ public final class Settings {
          * @hide
          */
         public static final String NETWORK_TRAFFIC_AUTOHIDE_THRESHOLD = "network_traffic_autohide_threshold";
+
+
+		/**
+         * Show four g instead of lte
+         * @hide
+         */
+        public static final String SHOW_FOURG = "show_fourg";
 
         /**
 	 * Whether to disable showing arrows in network traffic indicators
@@ -3872,6 +3885,16 @@ public final class Settings {
          * @hide
          */
         public static final String TOAST_ICON = "toast_icon";
+
+        /**
+         * Colors used for the color picker panel puttons
+         * 0: Benzo colors
+         * 1: Material colors
+         * 2: RGB colors
+         * default: 0
+         * @hide
+         */
+        public static final String COLOR_PICKER_PALETTE = "color_picker_palette";
 
         /**
          * Settings to backup. This is here so that it's in the same place as the settings

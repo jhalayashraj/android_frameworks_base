@@ -361,12 +361,13 @@ public class NotificationPanelView extends PanelView implements
 	    mBlurredView.addView(mInnerBlurredView, lp);
 	    mNotificationPanelView.addView(mBlurredView, 0, lp);
             mNotificationPanelView.requestLayout();
-            setQSStroke();
+//            setQSStroke();
             mBlurredView.setTag("ready_to_blur");
 
             mBlurredView.setVisibility(View.INVISIBLE);
 
             handleQuickSettingsBackround();
+	    mKeyguardWeatherInfo = (TextView) mKeyguardStatusView.findViewById(R.id.weather_info);
     }
 
     private static void handleQuickSettingsBackround() {
@@ -456,8 +457,6 @@ public class NotificationPanelView extends PanelView implements
         BlurTask.setBlurEngine(BlurUtils.BlurEngine.RenderScriptBlur);
 
         new BlurTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-
-        mKeyguardWeatherInfo = (TextView) mKeyguardStatusView.findViewById(R.id.weather_info);
     }
 
     @Override
