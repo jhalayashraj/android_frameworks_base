@@ -399,8 +399,10 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
     private TaskManager mTaskManager;
     private LinearLayout mTaskManagerPanel;
     private ImageButton mTaskManagerButton;
+    // task manager enabled
     private boolean mShowTaskManager;
-    private boolean showTaskList = false;
+    // task manager click state
+    private boolean mShowTaskList = false;
 
     // top bar
     BaseStatusBarHeader mHeader;
@@ -614,9 +616,21 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
 
 	    boolean mShow4G = Settings.System.getIntForUser(resolver,
                     Settings.System.SHOW_FOURG, 0, UserHandle.USER_CURRENT) == 1;
-
-	    mShowTaskManager = Settings.System.getIntForUser(resolver,
+            boolean showTaskManager = Settings.System.getIntForUser(resolver,
                     Settings.System.ENABLE_TASK_MANAGER, 0, UserHandle.USER_CURRENT) == 1;
+            if (mShowTaskManager != showTaskManager) {
+                if (!mShowTaskManager) {
+                    // explicitly reset click state when disabled
+                    mShowTaskList = false;
+                }
+                mShowTaskManager = showTaskManager;
+                if (mHeader != null) {
+                    mHeader.setTaskManagerEnabled(showTaskManager);
+                }
+                if (mNotificationPanel != null) {
+                    mNotificationPanel.setTaskManagerEnabled(showTaskManager);
+                }
+            }
 
             if (mNavigationBarView != null) {
                 boolean navLeftInLandscape = CMSettings.System.getIntForUser(resolver,
@@ -1263,17 +1277,21 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
 
 	// Task manager
         mTaskManagerPanel =
-                (LinearLayout) mStatusBarWindowContent.findViewById(R.id.task_manager_panel);
+                (LinearLayout) mStatusBarWindow.findViewById(R.id.task_manager_panel);
         mTaskManager = new TaskManager(mContext, mTaskManagerPanel);
         mTaskManager.setActivityStarter(this);
         mTaskManagerButton = (ImageButton) mHeader.findViewById(R.id.task_manager_button);
         mTaskManagerButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View arg0) {
-                showTaskList = !showTaskList;
-                mNotificationPanel.setTaskManagerVisibility(showTaskList);
+                mShowTaskList = !mShowTaskList;
+                mNotificationPanel.setTaskManagerVisibility(mShowTaskList);
             }
         });
+        /* Hide this for now. We dont recreate statusbar yet
+        mHeader.setTaskManagerEnabled(mShowTaskManager);
+        mNotificationPanel.setTaskManagerEnabled(mShowTaskManager);
+        mShowTaskList = false;*/
 
         // User info. Trigger first load.
         mKeyguardStatusBar.setUserInfoController(mUserInfoController);
