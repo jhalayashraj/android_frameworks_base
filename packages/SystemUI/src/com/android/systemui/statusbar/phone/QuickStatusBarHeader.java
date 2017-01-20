@@ -28,6 +28,7 @@ import android.graphics.drawable.RippleDrawable;
 import android.net.Uri;
 import android.os.UserManager;
 import android.os.UserHandle;
+import android.provider.Settings;
 import android.provider.AlarmClock;
 import android.provider.CalendarContract;
 import android.util.AttributeSet;
@@ -459,7 +460,7 @@ public class QuickStatusBarHeader extends BaseStatusBarHeader implements
             }
         }
     }
-    
+
     @Override
     public void onUserInfoChanged(String name, Drawable picture) {
         mMultiUserAvatar.setImageDrawable(picture);
